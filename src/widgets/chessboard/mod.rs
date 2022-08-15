@@ -13,6 +13,7 @@ pub enum Msg {
 use self::Msg::*;
 
 pub struct Model {
+    #[allow(dead_code)]
     pieces_images: pieces_images::PiecesImages,
 }
 
@@ -49,14 +50,14 @@ impl ChessBoard {
 
     fn draw(&self) -> Result<(), gtk::cairo::Error> {
         let size = self.common_size();
+        let cells_size = (size as f64) * 0.111;
 
         let image =
             gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
         let context = gtk::cairo::Context::new(&image)?;
 
         painter::Painter::clear_background(&context, size as f64);
-        painter::Painter::draw_piece(&context, self, 'B', 30.0, 60.0)?;
-        painter::Painter::draw_piece(&context, self, 'n', 80.0, 120.0)?;
+        painter::Painter::paint_cells(&context, cells_size);
 
         self.set_image(&image)?;
         Ok(())
