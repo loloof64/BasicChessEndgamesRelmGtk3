@@ -44,7 +44,10 @@ impl Widget for ChessBoard {
         let images = pieces_images::PiecesImages::new(30);
         Model {
             pieces_images: images,
-            board: Board::start_pos(),
+            board: Board::from_fen(
+                "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+            )
+            .unwrap(),
         }
     }
 
@@ -73,6 +76,7 @@ impl ChessBoard {
 
         painter::Painter::clear_background(&context, size as f64);
         painter::Painter::paint_cells(&context, cells_size);
+        painter::Painter::draw_coordinates(&context, cells_size);
         painter::Painter::paint_pieces(&context, cells_size, self, self.model.board.clone());
 
         self.set_image(&image)?;

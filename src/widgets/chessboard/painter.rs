@@ -1,6 +1,7 @@
 use super::ChessBoard;
 use gtk::{cairo::Context, prelude::GdkContextExt};
 use pleco::{Board, Piece, SQ};
+use core::ascii;
 
 pub struct Painter {}
 
@@ -52,6 +53,43 @@ impl Painter {
                 let piece_type = Painter::get_piece_type_from(piece);
                 Painter::draw_piece(cx, widget_board, piece_type, x, y);
             }
+        }
+    }
+
+    pub fn draw_coordinates(cx: &Context, cells_size: f64) {
+        cx.set_source_rgb(0.78, 0.78, 0.47);
+        cx.set_font_size(cells_size * 0.3);
+        for col in 0..8 {
+            let file = col;
+            let file_letter = (ascii::escape_default(b'A').next().unwrap() + file) as char;
+            let file_string = format!("{}", file_letter);
+
+            let x = cells_size * (0.9 + file as f64);
+            let y1 = cells_size * 0.35;
+            let y2 = cells_size * 8.85; 
+            
+            cx.move_to(x, y1);
+            cx.show_text(&file_string).unwrap();
+
+
+            cx.move_to(x, y2);
+            cx.show_text(&file_string).unwrap();
+        }
+
+        for row in 0..8 {
+            let rank = 7-row;
+            let rank_letter = (ascii::escape_default(b'1').next().unwrap() + rank) as char;
+            let rank_string = format!("{}", rank_letter);
+
+            let y = cells_size * (8.15 - rank as f64);
+            let x1 = cells_size * 0.15;
+            let x2 = cells_size * 8.65;
+
+            cx.move_to(x1, y);
+            cx.show_text(&rank_string).unwrap();
+
+            cx.move_to(x2, y);
+            cx.show_text(&rank_string).unwrap();
         }
     }
 

@@ -30,7 +30,7 @@ impl Widget for MainWindow {
     }
 
     fn init_view(&mut self) {
-        self.widgets.board.set_size_request(400, 400);
+        self.widgets.board.set_size_request(800, 800);
     }
 }
 
