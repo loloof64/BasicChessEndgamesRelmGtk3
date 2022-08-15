@@ -1,7 +1,7 @@
 use super::ChessBoard;
+use core::ascii;
 use gtk::{cairo::Context, prelude::GdkContextExt};
 use pleco::{Board, Piece, SQ};
-use core::ascii;
 use std::f64::consts::PI;
 
 pub struct Painter {}
@@ -36,11 +36,12 @@ impl Painter {
         cells_size: f64,
         widget_board: &ChessBoard,
         logical_board: Board,
+        reversed: bool,
     ) {
         for row in 0..8 {
             for col in 0..8 {
-                let file = col;
-                let rank = 7 - row;
+                let file = if reversed { 7 - col } else { col };
+                let rank = if reversed { row } else { 7 - row };
                 let square_index = file + 8 * rank;
                 let square = SQ::from(square_index);
                 let piece = logical_board.piece_at_sq(square);
@@ -49,40 +50,39 @@ impl Painter {
                     continue;
                 }
 
-                let x = cells_size as f64 * (file as f64 + 0.5);
-                let y = cells_size as f64 * (7.5 - rank as f64);
+                let x = cells_size as f64 * (col as f64 + 0.5);
+                let y = cells_size as f64 * (row as f64 + 0.5);
                 let piece_type = Painter::get_piece_type_from(piece);
                 Painter::draw_piece(cx, widget_board, piece_type, x, y);
             }
         }
     }
 
-    pub fn draw_coordinates(cx: &Context, cells_size: f64) {
+    pub fn draw_coordinates(cx: &Context, cells_size: f64, reversed: bool) {
         cx.set_source_rgb(0.78, 0.78, 0.47);
         cx.set_font_size(cells_size * 0.3);
         for col in 0..8 {
-            let file = col;
+            let file = if reversed { 7 - col } else { col };
             let file_letter = (ascii::escape_default(b'A').next().unwrap() + file) as char;
             let file_string = format!("{}", file_letter);
 
-            let x = cells_size * (0.9 + file as f64);
+            let x = cells_size * (0.9 + col as f64);
             let y1 = cells_size * 0.35;
-            let y2 = cells_size * 8.85; 
-            
+            let y2 = cells_size * 8.85;
+
             cx.move_to(x, y1);
             cx.show_text(&file_string).unwrap();
-
 
             cx.move_to(x, y2);
             cx.show_text(&file_string).unwrap();
         }
 
         for row in 0..8 {
-            let rank = 7-row;
+            let rank = if reversed { row } else { 7 - row };
             let rank_letter = (ascii::escape_default(b'1').next().unwrap() + rank) as char;
             let rank_string = format!("{}", rank_letter);
 
-            let y = cells_size * (8.15 - rank as f64);
+            let y = cells_size * (1.15 + row as f64);
             let x1 = cells_size * 0.15;
             let x2 = cells_size * 8.65;
 
@@ -95,7 +95,11 @@ impl Painter {
     }
 
     pub fn draw_player_turn(cx: &Context, cells_size: f64, white_turn: bool) {
-        let color = if white_turn {(1.0, 1.0, 1.0)} else {(0.0, 0.0, 0.0)};
+        let color = if white_turn {
+            (1.0, 1.0, 1.0)
+        } else {
+            (0.0, 0.0, 0.0)
+        };
         let location = cells_size as f64 * 8.75;
         let radius = cells_size as f64 * 0.25;
 

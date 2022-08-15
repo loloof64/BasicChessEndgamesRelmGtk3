@@ -18,6 +18,7 @@ pub struct Model {
     #[allow(dead_code)]
     pieces_images: pieces_images::PiecesImages,
     board: Board,
+    reversed: bool,
 }
 
 #[widget]
@@ -48,6 +49,7 @@ impl Widget for ChessBoard {
                 "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
             )
             .unwrap(),
+            reversed: true,
         }
     }
 
@@ -71,14 +73,21 @@ impl ChessBoard {
         let size = self.common_size();
         let cells_size = (size as f64) * 0.111;
         let turn = self.model.board.turn() == Player::White;
+        let reversed = self.model.reversed;
 
         let image = gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
         let context = gtk::cairo::Context::new(&image)?;
 
         painter::Painter::clear_background(&context, size as f64);
         painter::Painter::paint_cells(&context, cells_size);
-        painter::Painter::draw_coordinates(&context, cells_size);
-        painter::Painter::paint_pieces(&context, cells_size, self, self.model.board.clone());
+        painter::Painter::draw_coordinates(&context, cells_size, reversed);
+        painter::Painter::paint_pieces(
+            &context,
+            cells_size,
+            self,
+            self.model.board.clone(),
+            reversed,
+        );
         painter::Painter::draw_player_turn(&context, cells_size, turn);
 
         self.set_image(&image)?;
