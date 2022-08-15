@@ -1,9 +1,10 @@
+use gtk::prelude::WidgetExt;
+use pleco::Board;
 use relm::Widget;
 use relm_derive::{widget, Msg};
-use gtk::prelude::WidgetExt;
 
-mod pieces_images;
 mod painter;
+mod pieces_images;
 
 #[derive(Msg)]
 pub enum Msg {
@@ -15,6 +16,7 @@ use self::Msg::*;
 pub struct Model {
     #[allow(dead_code)]
     pieces_images: pieces_images::PiecesImages,
+    board: Board,
 }
 
 #[widget]
@@ -36,6 +38,7 @@ impl Widget for ChessBoard {
         let images = pieces_images::PiecesImages::new(30);
         Model {
             pieces_images: images,
+            board: Board::start_pos(),
         }
     }
 }
@@ -52,12 +55,12 @@ impl ChessBoard {
         let size = self.common_size();
         let cells_size = (size as f64) * 0.111;
 
-        let image =
-            gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
+        let image = gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
         let context = gtk::cairo::Context::new(&image)?;
 
         painter::Painter::clear_background(&context, size as f64);
         painter::Painter::paint_cells(&context, cells_size);
+        painter::Painter::paint_pieces(&context, cells_size, self, self.model.board.clone());
 
         self.set_image(&image)?;
         Ok(())
@@ -67,7 +70,11 @@ impl ChessBoard {
         let width = self.widgets.drawing_area.allocated_width();
         let height = self.widgets.drawing_area.allocated_height();
 
-        if width < height {width} else {height}
+        if width < height {
+            width
+        } else {
+            height
+        }
     }
 }
 
