@@ -1,5 +1,5 @@
 use gtk::prelude::WidgetExt;
-use pleco::Board;
+use pleco::{Board, Player};
 use relm::Widget;
 use relm_derive::{widget, Msg};
 
@@ -70,6 +70,7 @@ impl ChessBoard {
     fn draw(&self) -> Result<(), gtk::cairo::Error> {
         let size = self.common_size();
         let cells_size = (size as f64) * 0.111;
+        let turn = self.model.board.turn() == Player::White;
 
         let image = gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
         let context = gtk::cairo::Context::new(&image)?;
@@ -78,6 +79,7 @@ impl ChessBoard {
         painter::Painter::paint_cells(&context, cells_size);
         painter::Painter::draw_coordinates(&context, cells_size);
         painter::Painter::paint_pieces(&context, cells_size, self, self.model.board.clone());
+        painter::Painter::draw_player_turn(&context, cells_size, turn);
 
         self.set_image(&image)?;
         Ok(())

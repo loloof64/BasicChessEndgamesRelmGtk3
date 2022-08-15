@@ -2,6 +2,7 @@ use super::ChessBoard;
 use gtk::{cairo::Context, prelude::GdkContextExt};
 use pleco::{Board, Piece, SQ};
 use core::ascii;
+use std::f64::consts::PI;
 
 pub struct Painter {}
 
@@ -91,6 +92,16 @@ impl Painter {
             cx.move_to(x2, y);
             cx.show_text(&rank_string).unwrap();
         }
+    }
+
+    pub fn draw_player_turn(cx: &Context, cells_size: f64, white_turn: bool) {
+        let color = if white_turn {(1.0, 1.0, 1.0)} else {(0.0, 0.0, 0.0)};
+        let location = cells_size as f64 * 8.75;
+        let radius = cells_size as f64 * 0.25;
+
+        cx.set_source_rgb(color.0, color.1, color.2);
+        cx.arc(location, location, radius, 0.0, 2.0 * PI);
+        cx.fill().unwrap();
     }
 
     fn draw_piece(cx: &Context, board: &ChessBoard, piece_type: char, x: f64, y: f64) {
