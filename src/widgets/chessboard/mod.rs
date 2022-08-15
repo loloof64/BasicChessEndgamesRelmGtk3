@@ -10,7 +10,7 @@ pub struct Model {}
 impl Widget for ChessBoard {
     view! {
         gtk::DrawingArea {
-
+            
         }
     }
 
