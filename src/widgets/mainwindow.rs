@@ -2,7 +2,7 @@ use gtk::prelude::WidgetExt;
 use relm::Widget;
 use relm_derive::{widget, Msg};
 
-use super::chessboard::ChessBoard;
+use super::chessboard::{ChessBoard, Msg as BoardMsg};
 
 #[widget]
 impl Widget for MainWindow {
@@ -15,6 +15,7 @@ impl Widget for MainWindow {
             },
             delete_event(_window, _event) => (Quit, gtk::Inhibit(false)),
             size_allocate(_window, _allocation) => Resize,
+            size_allocate(_window, _allocation) => board@BoardMsg::UpdatePiecesImagesSize,
         }
     }
 
@@ -43,6 +44,7 @@ impl MainWindow {
 #[derive(Msg)]
 pub enum Msg {
     Quit,
+    #[allow(dead_code)]
     Resize,
 }
 

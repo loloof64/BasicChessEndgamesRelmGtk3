@@ -9,6 +9,7 @@ mod pieces_images;
 #[derive(Msg)]
 pub enum Msg {
     Repaint,
+    UpdatePiecesImagesSize,
 }
 
 use self::Msg::*;
@@ -31,6 +32,11 @@ impl Widget for ChessBoard {
     fn update(&mut self, event: Msg) {
         match event {
             Repaint => self.draw().unwrap(),
+            UpdatePiecesImagesSize => {
+                let new_cells_size = (self.common_size() as f64 * 0.111) as i32;
+                self.resize_pieces_images(new_cells_size);
+                self.draw().unwrap();
+            }
         }
     }
 
@@ -82,6 +88,10 @@ impl ChessBoard {
         } else {
             height
         }
+    }
+
+    fn resize_pieces_images(&mut self, new_size: i32) {
+        self.model.pieces_images = pieces_images::PiecesImages::new(new_size);
     }
 }
 
