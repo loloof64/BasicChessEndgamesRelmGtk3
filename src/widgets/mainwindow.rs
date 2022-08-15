@@ -1,5 +1,4 @@
-use gtk::prelude::OrientableExt;
-use gtk::prelude::{ButtonExt, WidgetExt};
+use gtk::prelude::{WidgetExt};
 use relm::Widget;
 use relm_derive::{widget, Msg};
 
