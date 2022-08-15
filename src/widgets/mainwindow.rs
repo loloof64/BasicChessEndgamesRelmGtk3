@@ -11,10 +11,10 @@ impl Widget for MainWindow {
         gtk::Window {
             #[name="board"]
             ChessBoard {
-
+                halign: gtk::Align::Center,
+                valign: gtk::Align::Center,
             },
             delete_event(_window, _event) => (Quit, gtk::Inhibit(false)),
-            size_allocate(_window, _allocation) => Resize,
             size_allocate(_window, _allocation) => board@BoardMsg::UpdatePiecesImagesSize,
         }
     }
@@ -22,7 +22,6 @@ impl Widget for MainWindow {
     fn update(&mut self, event: Msg) {
         match event {
             Quit => gtk::main_quit(),
-            Resize => self.update_on_resize(),
         }
     }
 
@@ -35,17 +34,9 @@ impl Widget for MainWindow {
     }
 }
 
-impl MainWindow {
-    fn update_on_resize(&mut self) {
-        self.widgets.root.queue_draw();
-    }
-}
-
 #[derive(Msg)]
 pub enum Msg {
     Quit,
-    #[allow(dead_code)]
-    Resize,
 }
 
 pub struct Model {}
