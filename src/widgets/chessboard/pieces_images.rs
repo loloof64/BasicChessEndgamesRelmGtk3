@@ -6,7 +6,6 @@ use gtk::glib::Bytes;
 
 #[derive(Clone)]
 pub struct PiecesImages {
-    pub streams: HashMap<char, MemoryInputStream>,
     pub pixbufs: HashMap<char, Pixbuf>,
 }
 
@@ -16,7 +15,7 @@ impl PiecesImages {
         let streams = PiecesImages::build_streams();
         let pixbufs = PiecesImages::build_pixbufs(&streams, size);
 
-        Self { streams, pixbufs }
+        Self { pixbufs }
     }
 
     pub fn build_streams() -> HashMap<char, MemoryInputStream> {
