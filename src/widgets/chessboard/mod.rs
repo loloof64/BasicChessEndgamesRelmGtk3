@@ -48,14 +48,13 @@ impl ChessBoard {
     }
 
     fn draw(&self) -> Result<(), gtk::cairo::Error> {
-        let width = self.widgets.drawing_area.allocated_width();
-        let height = self.widgets.drawing_area.allocated_height();
+        let size = self.common_size();
 
         let image =
-            gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, width, height)?;
+            gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
         let context = gtk::cairo::Context::new(&image)?;
 
-        self.clear_background(&context, width as f64, height as f64);
+        self.clear_background(&context, size as f64);
         self.draw_piece(&context, 'B', 30.0, 60.0)?;
         self.draw_piece(&context, 'n', 80.0, 120.0)?;
 
@@ -63,9 +62,9 @@ impl ChessBoard {
         Ok(())
     }
 
-    fn clear_background(&self, cx: &Context,  width: f64, height: f64) {
+    fn clear_background(&self, cx: &Context,  size: f64) {
         cx.set_source_rgb(0.3, 0.3, 0.8);
-        cx.rectangle(0.0, 0.0, width, height);
+        cx.rectangle(0.0, 0.0, size, size);
         cx.fill().unwrap();
     }
 
@@ -75,6 +74,13 @@ impl ChessBoard {
         cx.paint()?;
 
         Ok(())
+    }
+
+    fn common_size(&self) -> i32 {
+        let width = self.widgets.drawing_area.allocated_width();
+        let height = self.widgets.drawing_area.allocated_height();
+
+        if width < height {width} else {height}
     }
 }
 
