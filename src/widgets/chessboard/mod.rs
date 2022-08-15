@@ -41,6 +41,13 @@ impl Widget for ChessBoard {
             board: Board::start_pos(),
         }
     }
+
+    fn init_view(&mut self) {
+        let size = 400;
+        let cells_size = ((size as f64) * 0.111) as i32;
+        self.widgets.drawing_area.set_size_request(400, 400);
+        self.model.pieces_images = pieces_images::PiecesImages::new(cells_size);
+    }
 }
 
 impl ChessBoard {
