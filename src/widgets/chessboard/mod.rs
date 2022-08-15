@@ -1,9 +1,9 @@
 use relm::Widget;
 use relm_derive::{widget, Msg};
-use gtk::prelude::{WidgetExt, GdkContextExt};
-use gtk::cairo::Context;
+use gtk::prelude::WidgetExt;
 
 mod pieces_images;
+mod painter;
 
 #[derive(Msg)]
 pub enum Msg {
@@ -54,25 +54,11 @@ impl ChessBoard {
             gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
         let context = gtk::cairo::Context::new(&image)?;
 
-        self.clear_background(&context, size as f64);
-        self.draw_piece(&context, 'B', 30.0, 60.0)?;
-        self.draw_piece(&context, 'n', 80.0, 120.0)?;
+        painter::Painter::clear_background(&context, size as f64);
+        painter::Painter::draw_piece(&context, self, 'B', 30.0, 60.0)?;
+        painter::Painter::draw_piece(&context, self, 'n', 80.0, 120.0)?;
 
         self.set_image(&image)?;
-        Ok(())
-    }
-
-    fn clear_background(&self, cx: &Context,  size: f64) {
-        cx.set_source_rgb(0.3, 0.3, 0.8);
-        cx.rectangle(0.0, 0.0, size, size);
-        cx.fill().unwrap();
-    }
-
-    fn draw_piece(&self, cx: &Context, piece_type: char, x: f64, y: f64)  -> Result<(), gtk::cairo::Error>{
-        let pixbuf = &self.model.pieces_images.pixbufs[&piece_type];
-        cx.set_source_pixbuf(pixbuf, x, y);
-        cx.paint()?;
-
         Ok(())
     }
 
