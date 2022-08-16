@@ -30,7 +30,6 @@ impl Widget for MainWindow {
                 spacing: 5,
             },
             delete_event(_window, _event) => (Quit, gtk::Inhibit(false)),
-            size_allocate(_window, _allocation) => board@BoardMsg::UpdatePiecesImagesSize,
         }
     }
 
