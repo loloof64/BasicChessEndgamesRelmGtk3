@@ -9,7 +9,6 @@ pub struct PiecesImages {
     pub pixbufs: HashMap<char, Pixbuf>,
 }
 
-
 impl PiecesImages {
     pub fn new(size: i32) -> Self {
         let streams = PiecesImages::build_streams();

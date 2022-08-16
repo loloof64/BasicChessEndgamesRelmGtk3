@@ -10,6 +10,8 @@ mod pieces_images;
 pub enum Msg {
     Repaint,
     UpdatePiecesImagesSize,
+    ToggleOrientation,
+    SetReversed(bool),
 }
 
 use self::Msg::*;
@@ -36,6 +38,14 @@ impl Widget for ChessBoard {
             UpdatePiecesImagesSize => {
                 let new_cells_size = (self.common_size() as f64 * 0.111) as i32;
                 self.resize_pieces_images(new_cells_size);
+                self.draw().unwrap();
+            }
+            ToggleOrientation => {
+                self.model.reversed = !self.model.reversed;
+                self.draw().unwrap();
+            }
+            SetReversed(reversed) => {
+                self.model.reversed = reversed;
                 self.draw().unwrap();
             }
         }
