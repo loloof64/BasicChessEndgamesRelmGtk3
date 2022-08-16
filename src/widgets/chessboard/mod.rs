@@ -6,6 +6,8 @@ use relm_derive::{widget, Msg};
 mod painter;
 mod pieces_images;
 
+use anyhow::{self, Context};
+
 #[derive(Msg)]
 pub enum Msg {
     Repaint,
@@ -37,7 +39,8 @@ impl Widget for ChessBoard {
             Repaint => self.draw().unwrap(),
             UpdatePiecesImagesSize => {
                 let new_cells_size = (self.common_size() as f64 * 0.111) as i32;
-                self.resize_pieces_images(new_cells_size);
+                self.resize_pieces_images(new_cells_size)
+                    .expect("Failed to resize pieces images.");
                 self.draw().unwrap();
             }
             ToggleOrientation => {
@@ -52,7 +55,7 @@ impl Widget for ChessBoard {
     }
 
     fn model() -> Model {
-        let images = pieces_images::PiecesImages::new(30);
+        let images = pieces_images::PiecesImages::new(30).expect("Failed to build pieces images.");
         Model {
             pieces_images: images,
             board: Board::from_fen(
@@ -67,19 +70,22 @@ impl Widget for ChessBoard {
         let size = 400;
         let cells_size = ((size as f64) * 0.111) as i32;
         self.widgets.drawing_area.set_size_request(400, 400);
-        self.model.pieces_images = pieces_images::PiecesImages::new(cells_size);
+        self.model.pieces_images =
+            pieces_images::PiecesImages::new(cells_size).expect("Failed to build pieces images.");
     }
 }
 
 impl ChessBoard {
-    fn set_image(&self, image: &gtk::cairo::ImageSurface) -> Result<(), gtk::cairo::Error> {
+    fn set_image(&self, image: &gtk::cairo::ImageSurface) -> anyhow::Result<()> {
         let context = create_context(&self.widgets.drawing_area)?;
 
         context.set_source_surface(image, 0.0, 0.0)?;
-        context.paint()
+        context.paint().expect("Failed to paint chess board.");
+
+        Ok(())
     }
 
-    fn draw(&self) -> Result<(), gtk::cairo::Error> {
+    fn draw(&self) -> anyhow::Result<()> {
         let size = self.common_size();
         let cells_size = (size as f64) * 0.111;
         let turn = self.model.board.turn() == Player::White;
@@ -115,15 +121,19 @@ impl ChessBoard {
         }
     }
 
-    fn resize_pieces_images(&mut self, new_size: i32) {
-        self.model.pieces_images = pieces_images::PiecesImages::new(new_size);
+    fn resize_pieces_images(&mut self, new_size: i32) -> anyhow::Result<()> {
+        self.model.pieces_images = pieces_images::PiecesImages::new(new_size)?;
+
+        Ok(())
     }
 }
 
-fn create_context(widget: &gtk::DrawingArea) -> Result<gtk::cairo::Context, gtk::cairo::Error> {
-    let mut draw_handler = relm::DrawHandler::new().expect("draw handler");
+fn create_context(widget: &gtk::DrawingArea) -> anyhow::Result<gtk::cairo::Context> {
+    let mut draw_handler = relm::DrawHandler::new().with_context(|| "draw handler")?;
 
     draw_handler.init(widget);
 
-    draw_handler.get_context().map(|x| x.clone())
+    let context = draw_handler.get_context().map(|x| x.clone())?;
+
+    Ok(context)
 }

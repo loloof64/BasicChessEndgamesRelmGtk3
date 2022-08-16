@@ -47,7 +47,7 @@ impl Widget for MainWindow {
         self.widgets.board.set_size_request(400, 400);
 
         let reverse_pixbuf =
-            get_image_pixbuf_from(include_bytes!("../assets/images/reverse.svg"), 30);
+            get_image_pixbuf_from(include_bytes!("../assets/images/reverse.svg"), 30).expect("Failed to build image for reverse button.");
         let reverse_image = gtk::Image::from_pixbuf(Some(&reverse_pixbuf));
         let reverse_board_button = ToolButton::new(Some(&reverse_image), None);
         connect!(
@@ -72,16 +72,19 @@ pub struct Model {}
 
 use self::Msg::*;
 
-fn get_image_pixbuf_from(data: &[u8], size: i32) -> Pixbuf {
+use anyhow::{self, Context};
+
+fn get_image_pixbuf_from(data: &[u8], size: i32) -> anyhow::Result<Pixbuf> {
     let image_data = Bytes::from(data);
     let image_stream = MemoryInputStream::from_bytes(&image_data);
 
-    Pixbuf::from_stream_at_scale(
+    let pixbuf = Pixbuf::from_stream_at_scale(
         &image_stream,
         size,
         size,
         true,
         None::<&gtk::gio::Cancellable>,
-    )
-    .expect("Failed to interpret image.")
+    ).with_context(|| "Failed to interpret image.")?;
+
+    Ok(pixbuf)
 }

@@ -4,17 +4,19 @@ use gtk::gdk_pixbuf::Pixbuf;
 use gtk::gio::MemoryInputStream;
 use gtk::glib::Bytes;
 
+use anyhow::{self, Context};
+
 #[derive(Clone)]
 pub struct PiecesImages {
     pub pixbufs: HashMap<char, Pixbuf>,
 }
 
 impl PiecesImages {
-    pub fn new(size: i32) -> Self {
+    pub fn new(size: i32) -> anyhow::Result<Self> {
         let streams = PiecesImages::build_streams();
-        let pixbufs = PiecesImages::build_pixbufs(&streams, size);
+        let pixbufs = PiecesImages::build_pixbufs(&streams, size)?;
 
-        Self { pixbufs }
+        Ok(Self { pixbufs })
     }
 
     pub fn build_streams() -> HashMap<char, MemoryInputStream> {
@@ -52,7 +54,7 @@ impl PiecesImages {
     pub fn build_pixbufs(
         streams: &HashMap<char, MemoryInputStream>,
         size: i32,
-    ) -> HashMap<char, Pixbuf> {
+    ) -> anyhow::Result<HashMap<char, Pixbuf>> {
         let mut result = HashMap::new();
 
         for kind in streams.keys() {
@@ -65,11 +67,11 @@ impl PiecesImages {
                 true,
                 None::<&gtk::gio::Cancellable>,
             )
-            .expect("Failed to interpret image.");
+            .with_context(|| "Failed to interpret image.")?;
 
             result.insert(*kind, pixbuf);
         }
 
-        result
+        Ok(result)
     }
 }
