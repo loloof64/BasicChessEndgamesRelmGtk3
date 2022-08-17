@@ -30,8 +30,8 @@ pub struct DragAndDropData {
     piece: char,
     x: f64,
     y: f64,
-    startFile: u8,
-    startRank: u8,
+    start_file: u8,
+    start_rank: u8,
 }
 
 pub struct Model {
@@ -93,8 +93,8 @@ impl Widget for ChessBoard {
                             piece,
                             x,
                             y,
-                            startFile: file as u8,
-                            startRank: rank as u8,
+                            start_file: file as u8,
+                            start_rank: rank as u8,
                         };
                         self.model.dnd_data = Some(drag_drop_data);
                     }
@@ -180,8 +180,8 @@ impl ChessBoard {
         );
         painter::Painter::draw_player_turn(&context, cells_size, turn);
 
-        if let Some(drag_drop_data) = drag_drop_data {
-            painter::Painter::draw_moved_piece(&context, self, drag_drop_data);
+        if drag_drop_data.is_some() {
+            painter::Painter::draw_moved_piece(&context, self);
         }
 
         self.set_image(&image)?;

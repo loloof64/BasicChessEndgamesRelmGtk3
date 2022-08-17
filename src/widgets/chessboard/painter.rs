@@ -48,9 +48,18 @@ impl Painter {
                 let square = SQ::from(square_index);
                 let piece = logical_board.piece_at_sq(square);
 
-                if piece == Piece::None {
+                let is_moved_piece = match widget_board.model.dnd_data {
+                    Some(ref dnd_data) => {
+                        file == dnd_data.start_file && rank == dnd_data.start_rank
+                    },
+                    None => false,
+                };
+                let empty_square = piece == Piece::None;
+
+                if empty_square || is_moved_piece {
                     continue;
                 }
+
 
                 let x = cells_size as f64 * (col as f64 + 0.5);
                 let y = cells_size as f64 * (row as f64 + 0.5);
@@ -110,7 +119,8 @@ impl Painter {
         cx.fill().unwrap();
     }
 
-    pub fn draw_moved_piece(cx: &Context, board: &ChessBoard, drag_drop_data: &DragAndDropData) {
+    pub fn draw_moved_piece(cx: &Context, board: &ChessBoard) {
+        let drag_drop_data = board.model.dnd_data.as_ref().unwrap();
         let half_cells_size = board.common_size() as f64 * 0.055;
         Painter::draw_piece(
             cx,
