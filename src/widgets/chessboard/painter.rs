@@ -15,13 +15,50 @@ impl Painter {
         cx.fill().unwrap();
     }
 
-    pub fn paint_cells(cx: &Context, cells_size: f64) {
+    pub fn paint_cells(cx: &Context, cells_size: f64, widget_board: &ChessBoard) {
         for row in 0..8 {
             for col in 0..8 {
+                let file = if widget_board.model.reversed {
+                    7 - col
+                } else {
+                    col
+                };
+                let rank = if widget_board.model.reversed {
+                    row
+                } else {
+                    7 - row
+                };
+
                 let navajowhite = (1.0, 0.87, 0.68);
                 let peru = (0.8, 0.52, 0.25);
+
+                let olive = (0.5, 0.5, 0.0);
+                let indian_red = (0.8, 0.36, 0.36);
+
                 let is_white_cell = (row + col) % 2 == 0;
-                let background_color = if is_white_cell { navajowhite } else { peru };
+                let mut background_color = if is_white_cell { navajowhite } else { peru };
+
+                let is_target_cell = match widget_board.model.dnd_data.as_ref() {
+                    Some(drag_drop_data) => {
+                        drag_drop_data.target_file == file && drag_drop_data.target_rank == rank
+                    }
+                    None => false,
+                };
+
+                let is_start_cell = match widget_board.model.dnd_data.as_ref() {
+                    Some(drag_drop_data) => {
+                        drag_drop_data.start_file == file && drag_drop_data.start_rank == rank
+                    }
+                    None => false,
+                };
+
+                if is_target_cell {
+                    background_color = indian_red;
+                }
+
+                if is_start_cell {
+                    background_color = olive;
+                }
 
                 let x = cells_size * (col as f64 + 0.5);
                 let y = cells_size * (row as f64 + 0.5);
@@ -51,7 +88,7 @@ impl Painter {
                 let is_moved_piece = match widget_board.model.dnd_data {
                     Some(ref dnd_data) => {
                         file == dnd_data.start_file && rank == dnd_data.start_rank
-                    },
+                    }
                     None => false,
                 };
                 let empty_square = piece == Piece::None;
@@ -59,7 +96,6 @@ impl Painter {
                 if empty_square || is_moved_piece {
                     continue;
                 }
-
 
                 let x = cells_size as f64 * (col as f64 + 0.5);
                 let y = cells_size as f64 * (row as f64 + 0.5);

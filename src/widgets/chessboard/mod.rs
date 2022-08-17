@@ -32,6 +32,8 @@ pub struct DragAndDropData {
     y: f64,
     start_file: u8,
     start_rank: u8,
+    target_file: u8,
+    target_rank: u8,
 }
 
 pub struct Model {
@@ -95,6 +97,8 @@ impl Widget for ChessBoard {
                             y,
                             start_file: file as u8,
                             start_rank: rank as u8,
+                            target_file: file as u8,
+                            target_rank: rank as u8,
                         };
                         self.model.dnd_data = Some(drag_drop_data);
                     }
@@ -111,10 +115,9 @@ impl Widget for ChessBoard {
                 let start_file = self.model.dnd_data.as_ref().unwrap().start_file;
                 let start_rank = self.model.dnd_data.as_ref().unwrap().start_rank;
 
-                
-                let start_square_index = start_file + 8*start_rank;
+                let start_square_index = start_file + 8 * start_rank;
                 let start_square = SQ::from(start_square_index);
-                let target_square_index = (file + 8*rank) as u8;
+                let target_square_index = (file + 8 * rank) as u8;
                 let target_square = SQ::from(target_square_index);
 
                 let uci_move = get_uci_move_for(start_square, target_square, None);
@@ -129,10 +132,18 @@ impl Widget for ChessBoard {
                 let row = ((y - cells_size * 0.5) / cells_size).floor() as i16;
                 let file = if self.model.reversed { 7 - col } else { col };
                 let rank = if self.model.reversed { row } else { 7 - row };
+
                 match self.model.dnd_data {
                     Some(ref mut dnd_data) => {
                         dnd_data.x = x;
                         dnd_data.y = y;
+
+                        let in_bounds = file >= 0 && file <= 7 && rank >= 0 && rank <= 7;
+
+                        if in_bounds {
+                            dnd_data.target_file = file as u8;
+                            dnd_data.target_rank = rank as u8;
+                        }
                     }
                     _ => {}
                 };
@@ -181,12 +192,12 @@ impl ChessBoard {
         let drag_drop_data = self.model.dnd_data.as_ref();
 
         painter::Painter::clear_background(&context, size as f64);
-        painter::Painter::paint_cells(&context, cells_size);
+        painter::Painter::paint_cells(&context, cells_size, &self);
         painter::Painter::draw_coordinates(&context, cells_size, reversed);
         painter::Painter::paint_pieces(
             &context,
             cells_size,
-            self,
+            &self,
             self.model.board.clone(),
             reversed,
         );
