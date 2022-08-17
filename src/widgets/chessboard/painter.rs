@@ -1,5 +1,5 @@
 use super::utils::get_piece_type_from;
-use super::{ChessBoard, DragAndDropData};
+use super::ChessBoard;
 
 use core::ascii;
 use gtk::{cairo::Context, prelude::*};

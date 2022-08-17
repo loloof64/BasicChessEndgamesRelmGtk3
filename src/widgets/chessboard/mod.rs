@@ -14,6 +14,7 @@ use utils::{get_piece_type_from, get_uci_move_for};
 use anyhow::{self, Context};
 
 #[derive(Msg)]
+#[allow(dead_code)]
 pub enum Msg {
     Repaint,
     UpdatePiecesImagesSize,
