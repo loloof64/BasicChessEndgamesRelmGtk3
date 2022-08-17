@@ -1,6 +1,6 @@
 use super::ChessBoard;
 use core::ascii;
-use gtk::{cairo::Context, prelude::GdkContextExt};
+use gtk::{cairo::Context, prelude::*};
 use pleco::{Board, Piece, SQ};
 use std::f64::consts::PI;
 

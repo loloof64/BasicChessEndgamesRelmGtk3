@@ -2,7 +2,7 @@ use gtk::gdk_pixbuf::Pixbuf;
 use gtk::gio::MemoryInputStream;
 use gtk::glib::Bytes;
 use gtk::{
-    prelude::{BoxExt, OrientableExt, ToolButtonExt, WidgetExt},
+    prelude::*,
     traits::ToolbarExt,
     ToolButton,
 };

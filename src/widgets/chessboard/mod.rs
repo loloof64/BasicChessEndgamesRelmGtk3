@@ -1,4 +1,5 @@
-use gtk::prelude::WidgetExt;
+use gtk::prelude::*;
+use gtk::{gdk::EventButton, prelude::*};
 use pleco::{Board, Player};
 use relm::Widget;
 use relm_derive::{widget, Msg};
@@ -14,23 +15,38 @@ pub enum Msg {
     UpdatePiecesImagesSize,
     ToggleOrientation,
     SetReversed(bool),
+    ButtonDown(EventButton),
+    ButtonUp(EventButton),
 }
 
 use self::Msg::*;
+
+struct DragAndDropData {
+    piece: char,
+    x: f64,
+    y: f64,
+    startFile: u32,
+    startRank: u32,
+}
 
 pub struct Model {
     #[allow(dead_code)]
     pieces_images: pieces_images::PiecesImages,
     board: Board,
     reversed: bool,
+    dnd_data: Option<DragAndDropData>,
 }
 
 #[widget]
 impl Widget for ChessBoard {
     view! {
-        #[name="drawing_area"]
-        gtk::DrawingArea {
-            draw(_, cx) => (Repaint, gtk::Inhibit(false)),
+        gtk::EventBox {
+            #[name="drawing_area"]
+            gtk::DrawingArea {
+                draw(_, cx) => (Repaint, gtk::Inhibit(false)),
+            },
+            button_press_event(_drawing_area, event) =>  (ButtonDown(event.clone()), gtk::Inhibit(false)),
+            button_release_event(_drawing_area, event) =>  (ButtonUp(event.clone()), gtk::Inhibit(false)),
         }
     }
 
@@ -51,6 +67,20 @@ impl Widget for ChessBoard {
                 self.model.reversed = reversed;
                 self.draw().unwrap();
             }
+            ButtonDown(event) => {
+                println!(
+                    "Drag start at ({}, {}).",
+                    event.position().0,
+                    event.position().1
+                );
+            }
+            ButtonUp(event) => {
+                println!(
+                    "Drag end at ({}, {}).",
+                    event.position().0,
+                    event.position().1
+                )
+            }
         }
     }
 
@@ -63,6 +93,7 @@ impl Widget for ChessBoard {
             )
             .unwrap(),
             reversed: true,
+            dnd_data: None,
         }
     }
 
