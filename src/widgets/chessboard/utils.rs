@@ -1,4 +1,4 @@
-use pleco::{File, Piece, SQ, Rank};
+use pleco::{File, Piece, Rank, SQ};
 
 pub fn get_piece_type_from(piece: Piece) -> char {
     match piece {
@@ -29,6 +29,24 @@ pub fn get_uci_move_for(start: SQ, end: SQ, promotion: Option<char>) -> String {
     )
 }
 
+pub fn is_side_piece(piece: Piece, white_turn: bool) -> bool {
+    match piece {
+        Piece::None => false,
+        Piece::WhitePawn => white_turn,
+        Piece::WhiteKnight => white_turn,
+        Piece::WhiteBishop => white_turn,
+        Piece::WhiteRook => white_turn,
+        Piece::WhiteQueen => white_turn,
+        Piece::WhiteKing => white_turn,
+        Piece::BlackPawn => !white_turn,
+        Piece::BlackKnight => !white_turn,
+        Piece::BlackBishop => !white_turn,
+        Piece::BlackRook => !white_turn,
+        Piece::BlackQueen => !white_turn,
+        Piece::BlackKing => !white_turn,
+    }
+}
+
 fn square_to_algebraic(square: SQ) -> String {
     let file = square.file();
     let file = String::from(match file {
@@ -42,7 +60,7 @@ fn square_to_algebraic(square: SQ) -> String {
         File::H => "h",
     });
 
-    let rank  = square.rank();
+    let rank = square.rank();
     let rank = String::from(match rank {
         Rank::R1 => "1",
         Rank::R2 => "2",

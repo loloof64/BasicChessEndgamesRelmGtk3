@@ -9,7 +9,7 @@ mod painter;
 mod pieces_images;
 mod utils;
 
-use utils::{get_piece_type_from, get_uci_move_for};
+use utils::*;
 
 use anyhow::{self, Context};
 
@@ -90,7 +90,11 @@ impl Widget for ChessBoard {
                     let square = SQ::from(square_index);
                     let piece = self.model.board.piece_at_sq(square);
 
-                    if piece != Piece::None {
+                    let not_empty_piece = piece != Piece::None;
+                    let white_turn = self.model.board.turn() == Player::White;
+                    let our_piece = is_side_piece(piece, white_turn);
+
+                    if not_empty_piece && our_piece {
                         let piece = get_piece_type_from(piece);
                         let drag_drop_data = DragAndDropData {
                             piece,
@@ -113,16 +117,18 @@ impl Widget for ChessBoard {
                 let file = if self.model.reversed { 7 - col } else { col };
                 let rank = if self.model.reversed { row } else { 7 - row };
 
-                let start_file = self.model.dnd_data.as_ref().unwrap().start_file;
-                let start_rank = self.model.dnd_data.as_ref().unwrap().start_rank;
+                if self.model.dnd_data.is_some() {
+                    let start_file = self.model.dnd_data.as_ref().unwrap().start_file;
+                    let start_rank = self.model.dnd_data.as_ref().unwrap().start_rank;
 
-                let start_square_index = start_file + 8 * start_rank;
-                let start_square = SQ::from(start_square_index);
-                let target_square_index = (file + 8 * rank) as u8;
-                let target_square = SQ::from(target_square_index);
+                    let start_square_index = start_file + 8 * start_rank;
+                    let start_square = SQ::from(start_square_index);
+                    let target_square_index = (file + 8 * rank) as u8;
+                    let target_square = SQ::from(target_square_index);
 
-                let uci_move = get_uci_move_for(start_square, target_square, None);
-                self.model.board.apply_uci_move(&uci_move);
+                    let uci_move = get_uci_move_for(start_square, target_square, None);
+                    self.model.board.apply_uci_move(&uci_move);
+                }
 
                 self.model.dnd_data = None;
             }
