@@ -1,4 +1,6 @@
-use super::ChessBoard;
+use super::utils::get_piece_type_from;
+use super::{ChessBoard, DragAndDropData};
+
 use core::ascii;
 use gtk::{cairo::Context, prelude::*};
 use pleco::{Board, Piece, SQ};
@@ -52,7 +54,7 @@ impl Painter {
 
                 let x = cells_size as f64 * (col as f64 + 0.5);
                 let y = cells_size as f64 * (row as f64 + 0.5);
-                let piece_type = Painter::get_piece_type_from(piece);
+                let piece_type = get_piece_type_from(piece);
                 Painter::draw_piece(cx, widget_board, piece_type, x, y);
             }
         }
@@ -108,29 +110,20 @@ impl Painter {
         cx.fill().unwrap();
     }
 
+    pub fn draw_moved_piece(cx: &Context, board: &ChessBoard, drag_drop_data: &DragAndDropData) {
+        let half_cells_size = board.common_size() as f64 * 0.055;
+        Painter::draw_piece(
+            cx,
+            board,
+            drag_drop_data.piece,
+            drag_drop_data.x - half_cells_size,
+            drag_drop_data.y - half_cells_size,
+        );
+    }
+
     fn draw_piece(cx: &Context, board: &ChessBoard, piece_type: char, x: f64, y: f64) {
         let pixbuf = &board.model.pieces_images.pixbufs[&piece_type];
         cx.set_source_pixbuf(pixbuf, x, y);
         cx.paint().unwrap();
-    }
-
-    fn get_piece_type_from(piece: Piece) -> char {
-        match piece {
-            Piece::WhitePawn => 'P',
-            Piece::WhiteKnight => 'N',
-            Piece::WhiteBishop => 'B',
-            Piece::WhiteRook => 'R',
-            Piece::WhiteQueen => 'Q',
-            Piece::WhiteKing => 'K',
-
-            Piece::BlackPawn => 'p',
-            Piece::BlackKnight => 'n',
-            Piece::BlackBishop => 'b',
-            Piece::BlackRook => 'r',
-            Piece::BlackQueen => 'q',
-            Piece::BlackKing => 'k',
-
-            _ => ' ',
-        }
     }
 }

@@ -1,11 +1,15 @@
+use gtk::gdk::EventButton;
+use gtk::gdk::EventMotion;
 use gtk::prelude::*;
-use gtk::{gdk::EventButton, prelude::*};
-use pleco::{Board, Player};
+use pleco::{Board, Piece, Player, SQ};
 use relm::Widget;
 use relm_derive::{widget, Msg};
 
 mod painter;
 mod pieces_images;
+mod utils;
+
+use utils::get_piece_type_from;
 
 use anyhow::{self, Context};
 
@@ -17,16 +21,17 @@ pub enum Msg {
     SetReversed(bool),
     ButtonDown(EventButton),
     ButtonUp(EventButton),
+    MouseMoved(EventMotion),
 }
 
 use self::Msg::*;
 
-struct DragAndDropData {
+pub struct DragAndDropData {
     piece: char,
     x: f64,
     y: f64,
-    startFile: u32,
-    startRank: u32,
+    startFile: u8,
+    startRank: u8,
 }
 
 pub struct Model {
@@ -47,6 +52,7 @@ impl Widget for ChessBoard {
             },
             button_press_event(_drawing_area, event) =>  (ButtonDown(event.clone()), gtk::Inhibit(false)),
             button_release_event(_drawing_area, event) =>  (ButtonUp(event.clone()), gtk::Inhibit(false)),
+            motion_notify_event(_drawing_area, event) => (MouseMoved(event.clone()), gtk::Inhibit(false)),
         }
     }
 
@@ -68,18 +74,56 @@ impl Widget for ChessBoard {
                 self.draw().unwrap();
             }
             ButtonDown(event) => {
-                println!(
-                    "Drag start at ({}, {}).",
-                    event.position().0,
-                    event.position().1
-                );
+                let (x, y) = event.position();
+                let cells_size = self.common_size() as f64 * 0.111;
+                let col = ((x - cells_size * 0.5) / cells_size).floor() as i16;
+                let row = ((y - cells_size * 0.5) / cells_size).floor() as i16;
+                let file = if self.model.reversed { 7 - col } else { col };
+                let rank = if self.model.reversed { row } else { 7 - row };
+
+                let in_bounds = file >= 0 && file <= 7 && rank >= 0 && rank <= 7;
+                if in_bounds {
+                    let square_index = file as u8 + 8 * rank as u8;
+                    let square = SQ::from(square_index);
+                    let piece = self.model.board.piece_at_sq(square);
+
+                    if piece != Piece::None {
+                        let piece = get_piece_type_from(piece);
+                        let drag_drop_data = DragAndDropData {
+                            piece,
+                            x,
+                            y,
+                            startFile: file as u8,
+                            startRank: rank as u8,
+                        };
+                        self.model.dnd_data = Some(drag_drop_data);
+                    }
+                }
             }
             ButtonUp(event) => {
-                println!(
-                    "Drag end at ({}, {}).",
-                    event.position().0,
-                    event.position().1
-                )
+                let (x, y) = event.position();
+                let cells_size = self.common_size() as f64 * 0.111;
+                let col = ((x - cells_size * 0.5) / cells_size).floor() as i16;
+                let row = ((y - cells_size * 0.5) / cells_size).floor() as i16;
+                let file = if self.model.reversed { 7 - col } else { col };
+                let rank = if self.model.reversed { row } else { 7 - row };
+
+                self.model.dnd_data = None;
+            }
+            MouseMoved(event) => {
+                let (x, y) = event.position();
+                let cells_size = self.common_size() as f64 * 0.111;
+                let col = ((x - cells_size * 0.5) / cells_size).floor() as i16;
+                let row = ((y - cells_size * 0.5) / cells_size).floor() as i16;
+                let file = if self.model.reversed { 7 - col } else { col };
+                let rank = if self.model.reversed { row } else { 7 - row };
+                match self.model.dnd_data {
+                    Some(ref mut dnd_data) => {
+                        dnd_data.x = x;
+                        dnd_data.y = y;
+                    },
+                    _ => {}
+                };
             }
         }
     }
@@ -88,11 +132,8 @@ impl Widget for ChessBoard {
         let images = pieces_images::PiecesImages::new(30).expect("Failed to build pieces images.");
         Model {
             pieces_images: images,
-            board: Board::from_fen(
-                "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-            )
-            .unwrap(),
-            reversed: true,
+            board: Board::start_pos(),
+            reversed: false,
             dnd_data: None,
         }
     }
@@ -125,6 +166,8 @@ impl ChessBoard {
         let image = gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
         let context = gtk::cairo::Context::new(&image)?;
 
+        let drag_drop_data = self.model.dnd_data.as_ref();
+
         painter::Painter::clear_background(&context, size as f64);
         painter::Painter::paint_cells(&context, cells_size);
         painter::Painter::draw_coordinates(&context, cells_size, reversed);
@@ -136,6 +179,10 @@ impl ChessBoard {
             reversed,
         );
         painter::Painter::draw_player_turn(&context, cells_size, turn);
+
+        if let Some(drag_drop_data) = drag_drop_data {
+            painter::Painter::draw_moved_piece(&context, self, drag_drop_data);
+        }
 
         self.set_image(&image)?;
         Ok(())
