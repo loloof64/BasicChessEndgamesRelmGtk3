@@ -6,7 +6,7 @@ use gtk::{cairo::Context, prelude::*};
 use pleco::{Board, Piece, SQ};
 use std::f64::consts::PI;
 
-pub struct Painter {}
+pub struct Painter;
 
 impl Painter {
     pub fn clear_background(cx: &Context, size: f64) {
