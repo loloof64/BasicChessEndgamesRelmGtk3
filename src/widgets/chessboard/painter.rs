@@ -3,19 +3,50 @@ use super::ChessBoard;
 
 use core::ascii;
 use gtk::{cairo::Context, prelude::*};
-use pleco::{Board, Piece, SQ};
+use pleco::{Board, Piece, Player, SQ};
 use std::f64::consts::PI;
 
 pub struct Painter;
 
 impl Painter {
-    pub fn clear_background(cx: &Context, size: f64) {
+    pub fn draw(board: &mut ChessBoard) -> anyhow::Result<()> {
+        let size = board.common_size();
+        let cells_size = (size as f64) * 0.111;
+        let turn = board.model.board.turn() == Player::White;
+        let reversed = board.model.reversed;
+
+        let image = gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
+        let context = gtk::cairo::Context::new(&image)?;
+
+        let drag_drop_data = board.model.dnd_data.as_ref();
+
+        Painter::clear_background(&context, size as f64);
+        Painter::paint_cells(&context, cells_size, board);
+        Painter::draw_coordinates(&context, cells_size, reversed);
+        Painter::paint_pieces(
+            &context,
+            cells_size,
+            board,
+            board.model.board.clone(),
+            reversed,
+        );
+        Painter::draw_player_turn(&context, cells_size, turn);
+
+        if drag_drop_data.is_some() {
+            Painter::draw_moved_piece(&context, board);
+        }
+
+        board.set_image(&image)?;
+        Ok(())
+    }
+
+    fn clear_background(cx: &Context, size: f64) {
         cx.set_source_rgb(0.3, 0.3, 0.8);
         cx.rectangle(0.0, 0.0, size, size);
         cx.fill().unwrap();
     }
 
-    pub fn paint_cells(cx: &Context, cells_size: f64, widget_board: &ChessBoard) {
+    fn paint_cells(cx: &Context, cells_size: f64, widget_board: &ChessBoard) {
         for row in 0..8 {
             for col in 0..8 {
                 let file = if widget_board.model.reversed {
@@ -70,7 +101,7 @@ impl Painter {
         }
     }
 
-    pub fn paint_pieces(
+    fn paint_pieces(
         cx: &Context,
         cells_size: f64,
         widget_board: &ChessBoard,
@@ -105,7 +136,7 @@ impl Painter {
         }
     }
 
-    pub fn draw_coordinates(cx: &Context, cells_size: f64, reversed: bool) {
+    fn draw_coordinates(cx: &Context, cells_size: f64, reversed: bool) {
         cx.set_source_rgb(0.78, 0.78, 0.47);
         cx.set_font_size(cells_size * 0.3);
         for col in 0..8 {
@@ -141,7 +172,7 @@ impl Painter {
         }
     }
 
-    pub fn draw_player_turn(cx: &Context, cells_size: f64, white_turn: bool) {
+    fn draw_player_turn(cx: &Context, cells_size: f64, white_turn: bool) {
         let color = if white_turn {
             (1.0, 1.0, 1.0)
         } else {
@@ -155,7 +186,7 @@ impl Painter {
         cx.fill().unwrap();
     }
 
-    pub fn draw_moved_piece(cx: &Context, board: &ChessBoard) {
+    fn draw_moved_piece(cx: &Context, board: &ChessBoard) {
         let drag_drop_data = board.model.dnd_data.as_ref().unwrap();
         let half_cells_size = board.common_size() as f64 * 0.055;
         Painter::draw_piece(

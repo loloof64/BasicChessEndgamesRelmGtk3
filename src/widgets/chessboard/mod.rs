@@ -1,7 +1,7 @@
 use gtk::gdk::EventButton;
 use gtk::gdk::EventMotion;
 use gtk::prelude::*;
-use pleco::{Board, Player};
+use pleco::Board;
 use relm::Widget;
 use relm_derive::{widget, Msg};
 
@@ -61,20 +61,20 @@ impl Widget for ChessBoard {
 
     fn update(&mut self, event: Msg) {
         match event {
-            Repaint => self.draw().unwrap(),
+            Repaint => painter::Painter::draw(self).unwrap(),
             UpdatePiecesImagesSize => {
                 let new_cells_size = (self.common_size() as f64 * 0.111) as i32;
                 self.resize_pieces_images(new_cells_size)
                     .expect("Failed to resize pieces images.");
-                self.draw().unwrap();
+                painter::Painter::draw(self).unwrap();
             }
             ToggleOrientation => {
                 self.model.reversed = !self.model.reversed;
-                self.draw().unwrap();
+                painter::Painter::draw(self).unwrap();
             }
             SetReversed(reversed) => {
                 self.model.reversed = reversed;
-                self.draw().unwrap();
+                painter::Painter::draw(self).unwrap();
             }
             ButtonDown(event) => {
                 MouseHandler::handle_button_down(self, event);
@@ -114,37 +114,6 @@ impl ChessBoard {
         context.set_source_surface(image, 0.0, 0.0)?;
         context.paint().expect("Failed to paint chess board.");
 
-        Ok(())
-    }
-
-    fn draw(&self) -> anyhow::Result<()> {
-        let size = self.common_size();
-        let cells_size = (size as f64) * 0.111;
-        let turn = self.model.board.turn() == Player::White;
-        let reversed = self.model.reversed;
-
-        let image = gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
-        let context = gtk::cairo::Context::new(&image)?;
-
-        let drag_drop_data = self.model.dnd_data.as_ref();
-
-        painter::Painter::clear_background(&context, size as f64);
-        painter::Painter::paint_cells(&context, cells_size, &self);
-        painter::Painter::draw_coordinates(&context, cells_size, reversed);
-        painter::Painter::paint_pieces(
-            &context,
-            cells_size,
-            &self,
-            self.model.board.clone(),
-            reversed,
-        );
-        painter::Painter::draw_player_turn(&context, cells_size, turn);
-
-        if drag_drop_data.is_some() {
-            painter::Painter::draw_moved_piece(&context, self);
-        }
-
-        self.set_image(&image)?;
         Ok(())
     }
 
