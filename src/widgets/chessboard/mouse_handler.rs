@@ -66,7 +66,7 @@ impl MouseHandler {
             }
             _ => {}
         }
-        
+
         let (x, y) = event.position();
         let cells_size = board.common_size() as f64 * 0.111;
         let col = ((x - cells_size * 0.5) / cells_size).floor() as i16;
@@ -84,6 +84,8 @@ impl MouseHandler {
 
             if is_promotion_move {
                 dnd_data.pending_promotion = true;
+                let white_turn = board.model.board.turn() == Player::White;
+                board.show_promotion_dialog(white_turn);
                 return;
             }
 

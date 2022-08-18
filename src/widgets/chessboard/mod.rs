@@ -1,6 +1,13 @@
+use gtk::Box as GtkBox;
+use gtk::Button;
+use gtk::Image;
 use gtk::gdk::EventButton;
 use gtk::gdk::EventMotion;
+use gtk::gdk_pixbuf::Pixbuf;
+use gtk::gio::MemoryInputStream;
+use gtk::glib::Bytes;
 use gtk::prelude::*;
+use gtk::Dialog;
 use pleco::Board;
 use relm::Widget;
 use relm_derive::{widget, Msg};
@@ -10,7 +17,7 @@ mod painter;
 mod pieces_images;
 mod utils;
 
-use anyhow::{self, Context};
+use anyhow::{anyhow, Context};
 
 #[derive(Msg)]
 #[allow(dead_code)]
@@ -114,6 +121,95 @@ impl Widget for ChessBoard {
 }
 
 impl ChessBoard {
+    pub fn show_promotion_dialog(&self, white_turn: bool) {
+        let dialog = Dialog::new();
+
+        dialog.set_attached_to(Some(&self.widgets.drawing_area));
+
+        let dialog_area = dialog.content_area();
+
+        let hbox = GtkBox::new(gtk::Orientation::Horizontal, 10);
+
+        let size = (self.common_size() as f64 * 0.222).floor() as i32;
+
+        let queen_pixbuf = ChessBoard::get_piece_pixbuf(if white_turn { 'Q' } else { 'q' }, size).unwrap();
+        let rook_pixbuf = ChessBoard::get_piece_pixbuf(if white_turn { 'R' } else { 'r' }, size).unwrap();
+        let bishop_pixbuf = ChessBoard::get_piece_pixbuf(if white_turn { 'B' } else { 'b' }, size).unwrap();
+        let knight_pixbuf = ChessBoard::get_piece_pixbuf(if white_turn { 'N' } else { 'n' }, size).unwrap();
+
+        let queen_button = Button::new();
+        queen_button.set_image(Some(&Image::from_pixbuf(Some(&queen_pixbuf))));
+        queen_button.connect_clicked(|_button| {
+            println!("queen");
+        });
+
+        let rook_button = Button::new();
+        rook_button.set_image(Some(&Image::from_pixbuf(Some(&rook_pixbuf))));
+        rook_button.connect_clicked(|_button| {
+            println!("rook");
+        });
+
+        let bishop_button = Button::new();
+        bishop_button.set_image(Some(&Image::from_pixbuf(Some(&bishop_pixbuf))));
+        bishop_button.connect_clicked(|_button| {
+            println!("bishop");
+        });
+
+        let knight_button = Button::new();
+        knight_button.set_image(Some(&Image::from_pixbuf(Some(&knight_pixbuf))));
+        knight_button.connect_clicked(|_button| {
+            println!("knight");
+        });
+
+        hbox.pack_start(&queen_button, true, false, 10);
+        hbox.pack_start(&rook_button, true, false, 10);
+        hbox.pack_start(&bishop_button, true, false, 10);
+        hbox.pack_start(&knight_button, true, false, 10);
+
+        dialog_area.pack_start(&hbox, true, true, 10);
+
+        dialog.set_deletable(false);
+
+        dialog.show_all();
+    }
+
+    fn get_piece_pixbuf(piece_type: char, size: i32) -> anyhow::Result<Pixbuf> {
+        let piece_type_lowercase = piece_type.to_ascii_lowercase();
+        if piece_type_lowercase == 'q'
+            || piece_type_lowercase == 'r'
+            || piece_type_lowercase == 'b'
+            || piece_type_lowercase == 'n'
+        {
+            let data: &[u8] = match piece_type {
+                'Q' => include_bytes!("./vectors/Chess_qlt45.svg"),
+                'R' => include_bytes!("./vectors/Chess_rlt45.svg"),
+                'B' => include_bytes!("./vectors/Chess_blt45.svg"),
+                'N' => include_bytes!("./vectors/Chess_nlt45.svg"),
+                'q' => include_bytes!("./vectors/Chess_qdt45.svg"),
+                'r' => include_bytes!("./vectors/Chess_rdt45.svg"),
+                'b' => include_bytes!("./vectors/Chess_bdt45.svg"),
+                'n' => include_bytes!("./vectors/Chess_ndt45.svg"),
+                _ => panic!("Forbidden piece type {}.", piece_type),
+            };
+            let data = data;
+            let data = Bytes::from(data);
+            let image_stream = MemoryInputStream::from_bytes(&data);
+
+            let pixbuf = Pixbuf::from_stream_at_scale(
+                &image_stream,
+                size,
+                size,
+                true,
+                None::<&gtk::gio::Cancellable>,
+            )
+            .with_context(|| "Failed to interpret image.")?;
+
+            Ok(pixbuf)
+        } else {
+            Err(anyhow!("Forbidden piece type {}", piece_type))
+        }
+    }
+
     fn set_image(&self, image: &gtk::cairo::ImageSurface) -> anyhow::Result<()> {
         let context = create_context(&self.widgets.drawing_area)?;
 
@@ -141,9 +237,7 @@ impl ChessBoard {
     }
 
     fn reverse_dragged_piece_position(&mut self) {
-        let this_size = {
-            self.common_size()
-        } as f64;
+        let this_size = { self.common_size() } as f64;
         let dnd_data = self.model.dnd_data.as_mut();
         match dnd_data {
             Some(dnd_data) => {
@@ -155,7 +249,7 @@ impl ChessBoard {
 
                 dnd_data.x = new_x;
                 dnd_data.y = new_y;
-            },
+            }
             _ => {}
         };
     }
