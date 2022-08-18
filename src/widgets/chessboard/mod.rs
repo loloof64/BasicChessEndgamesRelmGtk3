@@ -1,14 +1,6 @@
-use gtk::Box as GtkBox;
-use gtk::Button;
-use gtk::Image;
-use gtk::gdk::EventButton;
-use gtk::gdk::EventMotion;
-use gtk::gdk_pixbuf::Pixbuf;
-use gtk::gio::MemoryInputStream;
-use gtk::glib::Bytes;
+use gtk::gdk::{EventButton, EventMotion};
 use gtk::prelude::*;
-use gtk::Dialog;
-use pleco::Board;
+use pleco::{Board, SQ};
 use relm::Widget;
 use relm_derive::{widget, Msg};
 
@@ -17,7 +9,7 @@ mod painter;
 mod pieces_images;
 mod utils;
 
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 
 #[derive(Msg)]
 #[allow(dead_code)]
@@ -32,6 +24,7 @@ pub enum Msg {
 }
 
 use self::mouse_handler::MouseHandler;
+use self::utils::get_uci_move_for;
 use self::Msg::*;
 
 pub struct DragAndDropData {
@@ -42,7 +35,7 @@ pub struct DragAndDropData {
     start_rank: u8,
     target_file: u8,
     target_rank: u8,
-    pending_promotion: bool,
+    pending_promotion: Option<bool>,
 }
 
 pub struct Model {
@@ -121,93 +114,31 @@ impl Widget for ChessBoard {
 }
 
 impl ChessBoard {
-    pub fn show_promotion_dialog(&self, white_turn: bool) {
-        let dialog = Dialog::new();
-
-        dialog.set_attached_to(Some(&self.widgets.drawing_area));
-
-        let dialog_area = dialog.content_area();
-
-        let hbox = GtkBox::new(gtk::Orientation::Horizontal, 10);
-
-        let size = (self.common_size() as f64 * 0.222).floor() as i32;
-
-        let queen_pixbuf = ChessBoard::get_piece_pixbuf(if white_turn { 'Q' } else { 'q' }, size).unwrap();
-        let rook_pixbuf = ChessBoard::get_piece_pixbuf(if white_turn { 'R' } else { 'r' }, size).unwrap();
-        let bishop_pixbuf = ChessBoard::get_piece_pixbuf(if white_turn { 'B' } else { 'b' }, size).unwrap();
-        let knight_pixbuf = ChessBoard::get_piece_pixbuf(if white_turn { 'N' } else { 'n' }, size).unwrap();
-
-        let queen_button = Button::new();
-        queen_button.set_image(Some(&Image::from_pixbuf(Some(&queen_pixbuf))));
-        queen_button.connect_clicked(|_button| {
-            println!("queen");
-        });
-
-        let rook_button = Button::new();
-        rook_button.set_image(Some(&Image::from_pixbuf(Some(&rook_pixbuf))));
-        rook_button.connect_clicked(|_button| {
-            println!("rook");
-        });
-
-        let bishop_button = Button::new();
-        bishop_button.set_image(Some(&Image::from_pixbuf(Some(&bishop_pixbuf))));
-        bishop_button.connect_clicked(|_button| {
-            println!("bishop");
-        });
-
-        let knight_button = Button::new();
-        knight_button.set_image(Some(&Image::from_pixbuf(Some(&knight_pixbuf))));
-        knight_button.connect_clicked(|_button| {
-            println!("knight");
-        });
-
-        hbox.pack_start(&queen_button, true, false, 10);
-        hbox.pack_start(&rook_button, true, false, 10);
-        hbox.pack_start(&bishop_button, true, false, 10);
-        hbox.pack_start(&knight_button, true, false, 10);
-
-        dialog_area.pack_start(&hbox, true, true, 10);
-
-        dialog.set_deletable(false);
-
-        dialog.show_all();
-    }
-
-    fn get_piece_pixbuf(piece_type: char, size: i32) -> anyhow::Result<Pixbuf> {
-        let piece_type_lowercase = piece_type.to_ascii_lowercase();
-        if piece_type_lowercase == 'q'
-            || piece_type_lowercase == 'r'
-            || piece_type_lowercase == 'b'
-            || piece_type_lowercase == 'n'
-        {
-            let data: &[u8] = match piece_type {
-                'Q' => include_bytes!("./vectors/Chess_qlt45.svg"),
-                'R' => include_bytes!("./vectors/Chess_rlt45.svg"),
-                'B' => include_bytes!("./vectors/Chess_blt45.svg"),
-                'N' => include_bytes!("./vectors/Chess_nlt45.svg"),
-                'q' => include_bytes!("./vectors/Chess_qdt45.svg"),
-                'r' => include_bytes!("./vectors/Chess_rdt45.svg"),
-                'b' => include_bytes!("./vectors/Chess_bdt45.svg"),
-                'n' => include_bytes!("./vectors/Chess_ndt45.svg"),
-                _ => panic!("Forbidden piece type {}.", piece_type),
-            };
-            let data = data;
-            let data = Bytes::from(data);
-            let image_stream = MemoryInputStream::from_bytes(&data);
-
-            let pixbuf = Pixbuf::from_stream_at_scale(
-                &image_stream,
-                size,
-                size,
-                true,
-                None::<&gtk::gio::Cancellable>,
-            )
-            .with_context(|| "Failed to interpret image.")?;
-
-            Ok(pixbuf)
-        } else {
-            Err(anyhow!("Forbidden piece type {}", piece_type))
+    pub fn commit_promotion(&mut self, piece_type: char) {
+        if piece_type != 'q' && piece_type != 'r' && piece_type != 'b' && piece_type != 'n' {
+            return;
         }
+
+        if self.model.dnd_data.is_none() {
+            return;
+        }
+
+        let dnd_data = self.model.dnd_data.as_ref().unwrap();
+
+        let start_file = dnd_data.start_file;
+        let start_rank = dnd_data.start_rank;
+        let target_file = dnd_data.target_file;
+        let target_rank = dnd_data.target_rank;
+
+        let start_square_index = start_file + 8 * start_rank;
+        let start_square = SQ::from(start_square_index);
+        let target_square_index = (target_file + 8 * target_rank) as u8;
+        let target_square = SQ::from(target_square_index);
+
+        let uci_move = get_uci_move_for(start_square, target_square, Some(piece_type));
+        self.model.board.apply_uci_move(&uci_move);
+
+        self.model.dnd_data = None;
     }
 
     fn set_image(&self, image: &gtk::cairo::ImageSurface) -> anyhow::Result<()> {

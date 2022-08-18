@@ -1,11 +1,7 @@
 use gtk::gdk_pixbuf::Pixbuf;
 use gtk::gio::MemoryInputStream;
 use gtk::glib::Bytes;
-use gtk::{
-    prelude::*,
-    traits::ToolbarExt,
-    ToolButton,
-};
+use gtk::{prelude::*, traits::ToolbarExt, ToolButton};
 use relm::{connect, Widget};
 use relm_derive::{widget, Msg};
 
@@ -47,7 +43,8 @@ impl Widget for MainWindow {
         self.widgets.board.set_size_request(400, 400);
 
         let reverse_pixbuf =
-            get_image_pixbuf_from(include_bytes!("../assets/images/reverse.svg"), 30).expect("Failed to build image for reverse button.");
+            get_image_pixbuf_from(include_bytes!("../assets/images/reverse.svg"), 30)
+                .expect("Failed to build image for reverse button.");
         let reverse_image = gtk::Image::from_pixbuf(Some(&reverse_pixbuf));
         let reverse_board_button = ToolButton::new(Some(&reverse_image), None);
         connect!(
@@ -84,7 +81,8 @@ fn get_image_pixbuf_from(data: &[u8], size: i32) -> anyhow::Result<Pixbuf> {
         size,
         true,
         None::<&gtk::gio::Cancellable>,
-    ).with_context(|| "Failed to interpret image.")?;
+    )
+    .with_context(|| "Failed to interpret image.")?;
 
     Ok(pixbuf)
 }

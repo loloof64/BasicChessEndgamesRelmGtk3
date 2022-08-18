@@ -74,4 +74,41 @@ impl PiecesImages {
 
         Ok(result)
     }
+
+    pub fn get_piece_pixbuf(piece_type: char, size: i32) -> anyhow::Result<Pixbuf> {
+        let piece_type_lowercase = piece_type.to_ascii_lowercase();
+        if piece_type_lowercase == 'q'
+            || piece_type_lowercase == 'r'
+            || piece_type_lowercase == 'b'
+            || piece_type_lowercase == 'n'
+        {
+            let data: &[u8] = match piece_type {
+                'Q' => include_bytes!("./vectors/Chess_qlt45.svg"),
+                'R' => include_bytes!("./vectors/Chess_rlt45.svg"),
+                'B' => include_bytes!("./vectors/Chess_blt45.svg"),
+                'N' => include_bytes!("./vectors/Chess_nlt45.svg"),
+                'q' => include_bytes!("./vectors/Chess_qdt45.svg"),
+                'r' => include_bytes!("./vectors/Chess_rdt45.svg"),
+                'b' => include_bytes!("./vectors/Chess_bdt45.svg"),
+                'n' => include_bytes!("./vectors/Chess_ndt45.svg"),
+                _ => panic!("Forbidden piece type {}.", piece_type),
+            };
+            let data = data;
+            let data = Bytes::from(data);
+            let image_stream = MemoryInputStream::from_bytes(&data);
+
+            let pixbuf = Pixbuf::from_stream_at_scale(
+                &image_stream,
+                size,
+                size,
+                true,
+                None::<&gtk::gio::Cancellable>,
+            )
+            .with_context(|| "Failed to interpret image.")?;
+
+            Ok(pixbuf)
+        } else {
+            Err(anyhow::anyhow!("Forbidden piece type {}", piece_type))
+        }
+    }
 }

@@ -1,5 +1,5 @@
-use super::utils::get_piece_type_from;
 use super::ChessBoard;
+use super::{pieces_images::PiecesImages, utils::get_piece_type_from};
 
 use core::ascii;
 use gtk::{cairo::Context, prelude::*};
@@ -9,6 +9,15 @@ use std::f64::consts::PI;
 pub struct Painter;
 
 impl Painter {
+    pub const BUTTON_Y1_RATIO: f64 = 0.05;
+    pub const BUTTON_Y2_RATIO: f64 = 0.80;
+    pub const BUTTON_SIZE_RATIO: f64 = 0.15;
+
+    pub const QUEEN_BUTTON_X_RATIO: f64 = 0.05;
+    pub const ROOK_BUTTON_X_RATIO: f64 = 0.30;
+    pub const BISHOP_BUTTON_X_RATIO: f64 = 0.55;
+    pub const KNIGHT_BUTTON_X_RATIO: f64 = 0.80;
+
     pub fn draw(board: &mut ChessBoard) -> anyhow::Result<()> {
         let size = board.common_size();
         let cells_size = (size as f64) * 0.111;
@@ -32,8 +41,11 @@ impl Painter {
         );
         Painter::draw_player_turn(&context, cells_size, turn);
 
-        if drag_drop_data.is_some() {
+        if let Some(drag_drop_data) = drag_drop_data {
             Painter::draw_moved_piece(&context, board);
+            if let Some(white_turn) = drag_drop_data.pending_promotion {
+                Painter::draw_promotion_buttons(&context, board, white_turn);
+            }
         }
 
         board.set_image(&image)?;
@@ -201,6 +213,72 @@ impl Painter {
     fn draw_piece(cx: &Context, board: &ChessBoard, piece_type: char, x: f64, y: f64) {
         let pixbuf = &board.model.pieces_images.pixbufs[&piece_type];
         cx.set_source_pixbuf(pixbuf, x, y);
+        cx.paint().unwrap();
+    }
+
+    fn draw_promotion_buttons(cx: &Context, board: &ChessBoard, white_turn: bool) {
+        let board_size = board.common_size() as f64;
+        let reversed = board.model.reversed;
+        let y = if white_turn {
+            board_size
+                * (if reversed {
+                    Painter::BUTTON_Y1_RATIO
+                } else {
+                    Painter::BUTTON_Y2_RATIO
+                })
+        } else {
+            board_size
+                * (if reversed {
+                    Painter::BUTTON_Y2_RATIO
+                } else {
+                    Painter::BUTTON_Y1_RATIO
+                })
+        };
+        let x_queen = board_size * Painter::QUEEN_BUTTON_X_RATIO;
+        let x_rook = board_size * Painter::ROOK_BUTTON_X_RATIO;
+        let x_bishop = board_size * Painter::BISHOP_BUTTON_X_RATIO;
+        let x_knight = board_size * Painter::KNIGHT_BUTTON_X_RATIO;
+
+        let button_size = board_size * Painter::BUTTON_SIZE_RATIO;
+        let button_color = (0.6, 0.5, 0.8, 0.5);
+        cx.set_source_rgba(
+            button_color.0,
+            button_color.1,
+            button_color.2,
+            button_color.3,
+        );
+
+        cx.rectangle(x_queen, y, button_size, button_size);
+        cx.fill().unwrap();
+        cx.rectangle(x_rook, y, button_size, button_size);
+        cx.fill().unwrap();
+        cx.rectangle(x_bishop, y, button_size, button_size);
+        cx.fill().unwrap();
+        cx.rectangle(x_knight, y, button_size, button_size);
+        cx.fill().unwrap();
+
+        let button_size = button_size.floor() as i32;
+
+        let queen_pixbuf =
+            PiecesImages::get_piece_pixbuf(if white_turn { 'Q' } else { 'q' }, button_size)
+                .unwrap();
+        let rook_pixbuf =
+            PiecesImages::get_piece_pixbuf(if white_turn { 'R' } else { 'r' }, button_size)
+                .unwrap();
+        let bishop_pixbuf =
+            PiecesImages::get_piece_pixbuf(if white_turn { 'B' } else { 'b' }, button_size)
+                .unwrap();
+        let knight_pixbuf =
+            PiecesImages::get_piece_pixbuf(if white_turn { 'N' } else { 'n' }, button_size)
+                .unwrap();
+
+        cx.set_source_pixbuf(&queen_pixbuf, x_queen, y);
+        cx.paint().unwrap();
+        cx.set_source_pixbuf(&rook_pixbuf, x_rook, y);
+        cx.paint().unwrap();
+        cx.set_source_pixbuf(&bishop_pixbuf, x_bishop, y);
+        cx.paint().unwrap();
+        cx.set_source_pixbuf(&knight_pixbuf, x_knight, y);
         cx.paint().unwrap();
     }
 }
