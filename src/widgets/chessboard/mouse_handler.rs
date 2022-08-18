@@ -10,6 +10,17 @@ pub struct MouseHandler;
 
 impl MouseHandler {
     pub fn handle_button_down(board: &mut ChessBoard, event: EventButton) {
+        // Cancelling if there is a pending promotion move.
+        let dnd_data = board.model.dnd_data.as_ref();
+        match dnd_data {
+            Some(dnd_data) => {
+                if dnd_data.pending_promotion {
+                    return;
+                }
+            }
+            _ => {}
+        }
+
         let (x, y) = event.position();
         let cells_size = board.common_size() as f64 * 0.111;
         let col = ((x - cells_size * 0.5) / cells_size).floor() as i16;
@@ -37,6 +48,7 @@ impl MouseHandler {
                     start_rank: rank as u8,
                     target_file: file as u8,
                     target_rank: rank as u8,
+                    pending_promotion: false,
                 };
                 board.model.dnd_data = Some(drag_drop_data);
             }
@@ -44,6 +56,17 @@ impl MouseHandler {
     }
 
     pub fn handle_button_up(board: &mut ChessBoard, event: EventButton) {
+        // Cancelling if there is a pending promotion move.
+        let dnd_data = board.model.dnd_data.as_ref();
+        match dnd_data {
+            Some(dnd_data) => {
+                if dnd_data.pending_promotion {
+                    return;
+                }
+            }
+            _ => {}
+        }
+        
         let (x, y) = event.position();
         let cells_size = board.common_size() as f64 * 0.111;
         let col = ((x - cells_size * 0.5) / cells_size).floor() as i16;
@@ -52,8 +75,17 @@ impl MouseHandler {
         let rank = if board.model.reversed { row } else { 7 - row };
 
         if board.model.dnd_data.is_some() {
-            let start_file = board.model.dnd_data.as_ref().unwrap().start_file;
-            let start_rank = board.model.dnd_data.as_ref().unwrap().start_rank;
+            let dnd_data = board.model.dnd_data.as_mut().unwrap();
+            let start_file = dnd_data.start_file;
+            let start_rank = dnd_data.start_rank;
+
+            let is_promotion_move =
+                (dnd_data.piece == 'P' && rank == 7) || (dnd_data.piece == 'p' && rank == 0);
+
+            if is_promotion_move {
+                dnd_data.pending_promotion = true;
+                return;
+            }
 
             let start_square_index = start_file + 8 * start_rank;
             let start_square = SQ::from(start_square_index);
@@ -68,6 +100,17 @@ impl MouseHandler {
     }
 
     pub fn handle_mouse_drag(board: &mut ChessBoard, event: EventMotion) {
+        // Cancelling if there is a pending promotion move.
+        let dnd_data = board.model.dnd_data.as_ref();
+        match dnd_data {
+            Some(dnd_data) => {
+                if dnd_data.pending_promotion {
+                    return;
+                }
+            }
+            _ => {}
+        }
+
         let (x, y) = event.position();
         let cells_size = board.common_size() as f64 * 0.111;
         let col = ((x - cells_size * 0.5) / cells_size).floor() as i16;

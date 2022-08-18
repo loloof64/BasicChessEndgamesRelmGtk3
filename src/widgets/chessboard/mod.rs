@@ -35,6 +35,7 @@ pub struct DragAndDropData {
     start_rank: u8,
     target_file: u8,
     target_rank: u8,
+    pending_promotion: bool,
 }
 
 pub struct Model {
@@ -70,9 +71,14 @@ impl Widget for ChessBoard {
             }
             ToggleOrientation => {
                 self.model.reversed = !self.model.reversed;
+                self.reverse_dragged_piece_position();
                 painter::Painter::draw(self).unwrap();
             }
             SetReversed(reversed) => {
+                let has_effect = reversed != self.model.reversed;
+                if has_effect {
+                    self.reverse_dragged_piece_position();
+                }
                 self.model.reversed = reversed;
                 painter::Painter::draw(self).unwrap();
             }
@@ -132,6 +138,26 @@ impl ChessBoard {
         self.model.pieces_images = pieces_images::PiecesImages::new(new_size)?;
 
         Ok(())
+    }
+
+    fn reverse_dragged_piece_position(&mut self) {
+        let this_size = {
+            self.common_size()
+        } as f64;
+        let dnd_data = self.model.dnd_data.as_mut();
+        match dnd_data {
+            Some(dnd_data) => {
+                let old_x = dnd_data.x;
+                let old_y = dnd_data.y;
+
+                let new_x = this_size as f64 - old_x;
+                let new_y = this_size as f64 - old_y;
+
+                dnd_data.x = new_x;
+                dnd_data.y = new_y;
+            },
+            _ => {}
+        };
     }
 }
 
