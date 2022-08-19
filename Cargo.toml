@@ -9,6 +9,6 @@ authors = ["Laurent Bernabe <laurent.bernabe@gmail.com>"]
 [dependencies]
 anyhow = "1.0.61"
 gtk = "0.15.5"
-pleco = "0.5.0"
+owlchess = "0.3.0"
 relm = "0.23.0"
 relm-derive = "0.23.0"

@@ -1,9 +1,9 @@
 use gtk::gdk::{EventButton, EventMotion};
-use pleco::{Piece, Player, SQ};
+use owlchess::{Color, File, Move, Rank};
 
 use super::{
     painter::Painter,
-    utils::{get_piece_type_from, get_uci_move_for, is_side_piece},
+    utils::{get_piece_type_from, get_uci_move_for},
     ChessBoard, DragAndDropData,
 };
 
@@ -32,16 +32,32 @@ impl MouseHandler {
 
         let in_bounds = file >= 0 && file <= 7 && rank >= 0 && rank <= 7;
         if in_bounds {
-            let square_index = file as u8 + 8 * rank as u8;
-            let square = SQ::from(square_index);
-            let piece = board.model.board.piece_at_sq(square);
+            let square = board.model.board.get2(
+                File::from_index(file as usize),
+                Rank::from_index((7-rank) as usize),
+            );
+            let piece_type = square.piece();
+            let piece_color = square.color();
 
-            let not_empty_piece = piece != Piece::None;
-            let white_turn = board.model.board.turn() == Player::White;
-            let our_piece = is_side_piece(piece, white_turn);
+            let not_empty_piece = piece_type != None && piece_color != None;
+            let fen_parts: Vec<String> = board
+                .model
+                .board
+                .as_fen()
+                .split(" ")
+                .map(|e| String::from(e))
+                .collect();
+            let white_turn = fen_parts[1] == "w";
+            let our_piece = match piece_color {
+                Some(piece_color) => {
+                    (piece_color == Color::White && white_turn)
+                        || (piece_color == Color::Black && !white_turn)
+                }
+                _ => false,
+            };
 
             if not_empty_piece && our_piece {
-                let piece = get_piece_type_from(piece);
+                let piece = get_piece_type_from(piece_type.unwrap(), piece_color.unwrap());
                 let drag_drop_data = DragAndDropData {
                     piece,
                     x,
@@ -87,23 +103,38 @@ impl MouseHandler {
                 && file <= 7;
 
             if is_promotion_move {
-                let white_turn = board.model.board.turn() == Player::White;
+                let fen_parts: Vec<String> = board
+                    .model
+                    .board
+                    .as_fen()
+                    .split(" ")
+                    .map(|e| String::from(e))
+                    .collect();
+                let white_turn = fen_parts[1] == "w";
                 dnd_data.pending_promotion = Some(white_turn);
                 dnd_data.target_file = file as u8;
                 dnd_data.target_rank = rank as u8;
                 return;
             }
 
-            let start_square_index = start_file + 8 * start_rank;
-            let start_square = SQ::from(start_square_index);
-            let target_square_index = (file + 8 * rank) as u8;
-            let target_square = SQ::from(target_square_index);
+            if file < 0 || file > 7 || rank < 0 || rank > 7 {
+                board.model.dnd_data = None;
+                return;
+            }
 
-            let uci_move = get_uci_move_for(start_square, target_square, None);
-            board.model.board.apply_uci_move(&uci_move);
+            let uci_move = get_uci_move_for(start_file, start_rank, file as u8, rank as u8, None);
+            let matching_move = Move::from_uci_legal(&uci_move, &board.model.board);
+
+            if let Ok(matching_move) = matching_move {
+                match board.model.board.make_move(matching_move) {
+                    Ok(logical_board) => board.model.board = logical_board,
+                    Err(_) => {}
+                }
+            }
         }
 
         board.model.dnd_data = None;
+        board.handle_game_termination();
     }
 
     pub fn handle_mouse_drag(board: &mut ChessBoard, event: EventMotion) {

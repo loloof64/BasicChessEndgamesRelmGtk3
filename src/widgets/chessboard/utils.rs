@@ -1,75 +1,90 @@
-use pleco::{File, Piece, Rank, SQ};
+use owlchess::{Color, Piece};
 
-pub fn get_piece_type_from(piece: Piece) -> char {
+pub fn get_piece_type_from(piece: Piece, color: Color) -> char {
     match piece {
-        Piece::WhitePawn => 'P',
-        Piece::WhiteKnight => 'N',
-        Piece::WhiteBishop => 'B',
-        Piece::WhiteRook => 'R',
-        Piece::WhiteQueen => 'Q',
-        Piece::WhiteKing => 'K',
-
-        Piece::BlackPawn => 'p',
-        Piece::BlackKnight => 'n',
-        Piece::BlackBishop => 'b',
-        Piece::BlackRook => 'r',
-        Piece::BlackQueen => 'q',
-        Piece::BlackKing => 'k',
-
-        _ => ' ',
+        Piece::Pawn => {
+            if color == Color::White {
+                'P'
+            } else {
+                'p'
+            }
+        }
+        Piece::Knight => {
+            if color == Color::White {
+                'N'
+            } else {
+                'n'
+            }
+        }
+        Piece::Bishop => {
+            if color == Color::White {
+                'B'
+            } else {
+                'b'
+            }
+        }
+        Piece::Rook => {
+            if color == Color::White {
+                'R'
+            } else {
+                'r'
+            }
+        }
+        Piece::Queen => {
+            if color == Color::White {
+                'Q'
+            } else {
+                'q'
+            }
+        }
+        Piece::King => {
+            if color == Color::White {
+                'K'
+            } else {
+                'k'
+            }
+        }
     }
 }
 
-pub fn get_uci_move_for(start: SQ, end: SQ, promotion: Option<char>) -> String {
+pub fn get_uci_move_for(
+    start_file: u8,
+    start_rank: u8,
+    end_file: u8,
+    end_rank: u8,
+    promotion: Option<char>,
+) -> String {
     format!(
         "{}{}{}",
-        square_to_algebraic(start),
-        square_to_algebraic(end),
+        square_coords_to_algebraic(start_file, start_rank),
+        square_coords_to_algebraic(end_file, end_rank),
         promotion_as_algebraic(promotion)
     )
 }
 
-pub fn is_side_piece(piece: Piece, white_turn: bool) -> bool {
-    match piece {
-        Piece::None => false,
-        Piece::WhitePawn => white_turn,
-        Piece::WhiteKnight => white_turn,
-        Piece::WhiteBishop => white_turn,
-        Piece::WhiteRook => white_turn,
-        Piece::WhiteQueen => white_turn,
-        Piece::WhiteKing => white_turn,
-        Piece::BlackPawn => !white_turn,
-        Piece::BlackKnight => !white_turn,
-        Piece::BlackBishop => !white_turn,
-        Piece::BlackRook => !white_turn,
-        Piece::BlackQueen => !white_turn,
-        Piece::BlackKing => !white_turn,
-    }
-}
-
-fn square_to_algebraic(square: SQ) -> String {
-    let file = square.file();
+fn square_coords_to_algebraic(file: u8, rank: u8) -> String {
     let file = String::from(match file {
-        File::A => "a",
-        File::B => "b",
-        File::C => "c",
-        File::D => "d",
-        File::E => "e",
-        File::F => "f",
-        File::G => "g",
-        File::H => "h",
+        0 => "a",
+        1 => "b",
+        2 => "c",
+        3 => "d",
+        4 => "e",
+        5 => "f",
+        6 => "g",
+        7 => "h",
+        _ => panic!("Forbidden file value : {}.", file),
     });
 
-    let rank = square.rank();
     let rank = String::from(match rank {
-        Rank::R1 => "1",
-        Rank::R2 => "2",
-        Rank::R3 => "3",
-        Rank::R4 => "4",
-        Rank::R5 => "5",
-        Rank::R6 => "6",
-        Rank::R7 => "7",
-        Rank::R8 => "8",
+        0 => "1",
+        1 => "2",
+        2 => "3",
+        3 => "4",
+        4 => "5",
+        5 => "6",
+        6 => "7",
+        7 => "8",
+        _ => panic!("Forbidden rank value : {}.", rank),
     });
 
     format!("{}{}", file, rank)

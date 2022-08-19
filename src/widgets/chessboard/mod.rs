@@ -1,6 +1,6 @@
 use gtk::gdk::{EventButton, EventMotion};
 use gtk::prelude::*;
-use pleco::{Board, SQ};
+use owlchess::{Board, Move};
 use relm::Widget;
 use relm_derive::{widget, Msg};
 
@@ -98,7 +98,7 @@ impl Widget for ChessBoard {
         let images = pieces_images::PiecesImages::new(30).expect("Failed to build pieces images.");
         Model {
             pieces_images: images,
-            board: Board::start_pos(),
+            board: Board::initial(),
             reversed: false,
             dnd_data: None,
         }
@@ -130,13 +130,21 @@ impl ChessBoard {
         let target_file = dnd_data.target_file;
         let target_rank = dnd_data.target_rank;
 
-        let start_square_index = start_file + 8 * start_rank;
-        let start_square = SQ::from(start_square_index);
-        let target_square_index = (target_file + 8 * target_rank) as u8;
-        let target_square = SQ::from(target_square_index);
+        let uci_move = get_uci_move_for(
+            start_file,
+            start_rank,
+            target_file,
+            target_rank,
+            Some(piece_type),
+        );
+        let matching_move = Move::from_uci_legal(&uci_move, &self.model.board);
 
-        let uci_move = get_uci_move_for(start_square, target_square, Some(piece_type));
-        self.model.board.apply_uci_move(&uci_move);
+        if let Ok(matching_move) = matching_move {
+            match self.model.board.make_move(matching_move) {
+                Ok(logical_board) => self.model.board = logical_board,
+                Err(_) => {}
+            }
+        }
 
         self.model.dnd_data = None;
     }
@@ -183,6 +191,13 @@ impl ChessBoard {
             }
             _ => {}
         };
+    }
+
+    fn handle_game_termination(&self) {
+        /*let checkmate = self.model.board.checkmate();
+        let stalemate = self.model.board.stalemate();
+        let fifty_moves_rule = self.model.board.rule_50();
+        */
     }
 }
 

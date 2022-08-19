@@ -3,7 +3,7 @@ use super::{pieces_images::PiecesImages, utils::get_piece_type_from};
 
 use core::ascii;
 use gtk::{cairo::Context, prelude::*};
-use pleco::{Board, Piece, Player, SQ};
+use owlchess::{File, Rank};
 use std::f64::consts::PI;
 
 pub struct Painter;
@@ -21,7 +21,14 @@ impl Painter {
     pub fn draw(board: &mut ChessBoard) -> anyhow::Result<()> {
         let size = board.common_size();
         let cells_size = (size as f64) * 0.111;
-        let turn = board.model.board.turn() == Player::White;
+        let fen_parts: Vec<String> = board
+            .model
+            .board
+            .as_fen()
+            .split(" ")
+            .map(|e| String::from(e))
+            .collect();
+        let white_turn = fen_parts[1] == "w";
         let reversed = board.model.reversed;
 
         let image = gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
@@ -32,14 +39,8 @@ impl Painter {
         Painter::clear_background(&context, size as f64);
         Painter::paint_cells(&context, cells_size, board);
         Painter::draw_coordinates(&context, cells_size, reversed);
-        Painter::paint_pieces(
-            &context,
-            cells_size,
-            board,
-            board.model.board.clone(),
-            reversed,
-        );
-        Painter::draw_player_turn(&context, cells_size, turn);
+        Painter::paint_pieces(&context, cells_size, board, reversed);
+        Painter::draw_player_turn(&context, cells_size, white_turn);
 
         if let Some(drag_drop_data) = drag_drop_data {
             Painter::draw_moved_piece(&context, board);
@@ -113,28 +114,25 @@ impl Painter {
         }
     }
 
-    fn paint_pieces(
-        cx: &Context,
-        cells_size: f64,
-        widget_board: &ChessBoard,
-        logical_board: Board,
-        reversed: bool,
-    ) {
+    fn paint_pieces(cx: &Context, cells_size: f64, board: &ChessBoard, reversed: bool) {
         for row in 0..8 {
             for col in 0..8 {
-                let file = if reversed { 7 - col } else { col };
-                let rank = if reversed { row } else { 7 - row };
-                let square_index = file + 8 * rank;
-                let square = SQ::from(square_index);
-                let piece = logical_board.piece_at_sq(square);
+                let file = if reversed { 7 - col } else { col } as u8;
+                let rank = if reversed { row } else { 7 - row } as u8;
+                let square = board.model.board.get2(
+                    File::from_index(file as usize),
+                    Rank::from_index((7 - rank) as usize),
+                );
+                let piece_type = square.piece();
+                let piece_color = square.color();
 
-                let is_moved_piece = match widget_board.model.dnd_data {
+                let is_moved_piece = match board.model.dnd_data {
                     Some(ref dnd_data) => {
                         file == dnd_data.start_file && rank == dnd_data.start_rank
                     }
                     None => false,
                 };
-                let empty_square = piece == Piece::None;
+                let empty_square = piece_type == None || piece_color == None;
 
                 if empty_square || is_moved_piece {
                     continue;
@@ -142,8 +140,8 @@ impl Painter {
 
                 let x = cells_size as f64 * (col as f64 + 0.5);
                 let y = cells_size as f64 * (row as f64 + 0.5);
-                let piece_type = get_piece_type_from(piece);
-                Painter::draw_piece(cx, widget_board, piece_type, x, y);
+                let piece_type = get_piece_type_from(piece_type.unwrap(), piece_color.unwrap());
+                Painter::draw_piece(cx, board, piece_type, x, y);
             }
         }
     }
