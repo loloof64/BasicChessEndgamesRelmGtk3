@@ -11,6 +11,10 @@ pub struct MouseHandler;
 
 impl MouseHandler {
     pub fn handle_button_down(board: &mut ChessBoard, event: EventButton) {
+        if !board.model.game_in_progress {
+            return;
+        }
+
         // Cancelling if there is a pending promotion move.
         let dnd_data = board.model.dnd_data.as_ref();
         match dnd_data {
@@ -74,6 +78,10 @@ impl MouseHandler {
     }
 
     pub fn handle_button_up(board: &mut ChessBoard, event: EventButton) {
+        if !board.model.game_in_progress {
+            return;
+        }
+
         // Cancelling if there is a pending promotion move.
         let dnd_data = board.model.dnd_data.as_ref();
         match dnd_data {
@@ -141,6 +149,10 @@ impl MouseHandler {
     }
 
     pub fn handle_mouse_drag(board: &mut ChessBoard, event: EventMotion) {
+        if !board.model.game_in_progress {
+            return;
+        }
+
         // Cancelling if there is a pending promotion move.
         let dnd_data = board.model.dnd_data.as_ref();
         match dnd_data {
@@ -232,7 +244,7 @@ impl MouseHandler {
         }
     }
 
-    fn handle_game_termination(board: &ChessBoard) {
+    fn handle_game_termination(board: &mut ChessBoard) {
         let outcome_1 = board.model.board_moves_chain.calc_outcome();
         let outcome_2 = board.model.board.calc_outcome();
 

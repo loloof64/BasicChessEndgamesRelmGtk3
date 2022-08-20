@@ -50,6 +50,7 @@ pub struct Model {
     reversed: bool,
     dnd_data: Option<DragAndDropData>,
     window_stream: StreamHandle<mainwindow::Msg>,
+    game_in_progress: bool,
 }
 
 #[widget]
@@ -111,7 +112,8 @@ impl Widget for ChessBoard {
             reversed: false,
             dnd_data: None,
             board_moves_chain: BaseMoveChain::new(board_clone),
-            window_stream
+            window_stream,
+            game_in_progress: true,
         }
     }
 
@@ -130,6 +132,7 @@ impl ChessBoard {
         let board_clone = board.clone();
         self.model.board = board;
         self.model.board_moves_chain = MoveChain::new(board_clone);
+        self.model.game_in_progress = true;
     }
 
     pub fn commit_promotion(&mut self, piece_type: char) {
@@ -210,7 +213,8 @@ impl ChessBoard {
             _ => {}
         };
     }
-    fn handle_game_termination(&self, outcome: &Outcome) {
+    fn handle_game_termination(&mut self, outcome: &Outcome) {
+        self.model.game_in_progress = false;
         self.model.window_stream.emit(mainwindow::Msg::GameOver(*outcome));
     }
 }
