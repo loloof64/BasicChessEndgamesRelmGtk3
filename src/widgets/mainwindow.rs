@@ -1,8 +1,12 @@
 use gtk::gdk_pixbuf::Pixbuf;
 use gtk::gio::MemoryInputStream;
 use gtk::glib::Bytes;
-use gtk::{prelude::*, traits::ToolbarExt, ToolButton};
-use relm::{connect, Widget};
+use gtk::{
+    prelude::*, traits::ToolbarExt, ButtonsType, DialogFlags, MessageDialog, MessageType,
+    ToolButton,
+};
+use owlchess::{Color, DrawReason, Outcome, WinReason};
+use relm::{connect, Widget, Relm};
 use relm_derive::{widget, Msg};
 
 use super::chessboard::{ChessBoard, Msg as BoardMsg};
@@ -18,7 +22,7 @@ impl Widget for MainWindow {
                     style: gtk::ToolbarStyle::Icons,
                 },
                 #[name="board"]
-                ChessBoard {
+                ChessBoard(self.model.relm.stream().clone()) {
                     halign: gtk::Align::Center,
                     valign: gtk::Align::Center,
                 },
@@ -32,11 +36,14 @@ impl Widget for MainWindow {
     fn update(&mut self, event: Msg) {
         match event {
             Quit => gtk::main_quit(),
+            GameOver(outcome) => self.handle_game_termination(outcome),
         }
     }
 
-    fn model() -> Model {
-        Model {}
+    fn model(relm: &Relm<Self>, _: ()) -> Model {
+        Model {
+            relm: relm.clone()
+        }
     }
 
     fn init_view(&mut self) {
@@ -60,12 +67,53 @@ impl Widget for MainWindow {
     }
 }
 
+impl MainWindow {
+    fn handle_game_termination(&self, outcome: Outcome) {
+        let message = match outcome {
+            Outcome::Draw(draw_type) => String::from(match draw_type {
+                DrawReason::InsufficientMaterial => "Draw by insufficient material.",
+                DrawReason::Stalemate => "Draw by stalemate.",
+                DrawReason::Moves50 => "Draw by the 50 moves rule.",
+                DrawReason::Moves75 => "Draw by the 75 moves rule.",
+                DrawReason::Repeat3 => "Draw by three folds repetition.",
+                DrawReason::Repeat5 => "Draw by five folds repetition.",
+                _ => "Draw by unknown reason.",
+            }),
+            Outcome::Win { side, reason } => {
+                let side_text = if side == Color::White {
+                    "White"
+                } else {
+                    "Black"
+                };
+                match reason {
+                    WinReason::Checkmate => {
+                        format!("{} has won by checkmate.", side_text)
+                    }
+                    _ => format!("{} has won by unknown reason.", side_text),
+                }
+            }
+        };
+        let dialog = MessageDialog::new(
+            Some(&self.widgets.root),
+            DialogFlags::MODAL,
+            MessageType::Info,
+            ButtonsType::Ok,
+            &message,
+        );
+        dialog.run();
+        dialog.emit_close();
+    }
+}
+
 #[derive(Msg)]
 pub enum Msg {
     Quit,
+    GameOver(Outcome),
 }
 
-pub struct Model {}
+pub struct Model {
+    relm: Relm<MainWindow>,
+}
 
 use self::Msg::*;
 

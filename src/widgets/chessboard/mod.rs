@@ -1,7 +1,8 @@
 use gtk::gdk::{EventButton, EventMotion};
 use gtk::prelude::*;
-use owlchess::{Board, Move};
-use relm::Widget;
+use owlchess::chain::BaseMoveChain;
+use owlchess::{Board, Move, MoveChain, Outcome};
+use relm::{Widget, StreamHandle};
 use relm_derive::{widget, Msg};
 
 mod mouse_handler;
@@ -21,11 +22,14 @@ pub enum Msg {
     ButtonDown(EventButton),
     ButtonUp(EventButton),
     MouseMoved(EventMotion),
+    GameOver(Outcome),
 }
 
 use self::mouse_handler::MouseHandler;
 use self::utils::get_uci_move_for;
 use self::Msg::*;
+
+use super::mainwindow;
 
 pub struct DragAndDropData {
     piece: char,
@@ -42,8 +46,10 @@ pub struct Model {
     #[allow(dead_code)]
     pieces_images: pieces_images::PiecesImages,
     board: Board,
+    board_moves_chain: MoveChain,
     reversed: bool,
     dnd_data: Option<DragAndDropData>,
+    window_stream: StreamHandle<mainwindow::Msg>,
 }
 
 #[widget]
@@ -91,16 +97,21 @@ impl Widget for ChessBoard {
             MouseMoved(event) => {
                 MouseHandler::handle_mouse_drag(self, event);
             }
+            GameOver(_) => {},
         }
     }
 
-    fn model() -> Model {
+    fn model(window_stream: StreamHandle<mainwindow::Msg>) -> Model {
         let images = pieces_images::PiecesImages::new(30).expect("Failed to build pieces images.");
+        let board = Board::initial();
+        let board_clone = board.clone();
         Model {
             pieces_images: images,
-            board: Board::initial(),
+            board,
             reversed: false,
             dnd_data: None,
+            board_moves_chain: BaseMoveChain::new(board_clone),
+            window_stream
         }
     }
 
@@ -114,6 +125,13 @@ impl Widget for ChessBoard {
 }
 
 impl ChessBoard {
+    pub fn start_new_game(&mut self) {
+        let board = Board::initial();
+        let board_clone = board.clone();
+        self.model.board = board;
+        self.model.board_moves_chain = MoveChain::new(board_clone);
+    }
+
     pub fn commit_promotion(&mut self, piece_type: char) {
         if piece_type != 'q' && piece_type != 'r' && piece_type != 'b' && piece_type != 'n' {
             return;
@@ -192,12 +210,8 @@ impl ChessBoard {
             _ => {}
         };
     }
-
-    fn handle_game_termination(&self) {
-        /*let checkmate = self.model.board.checkmate();
-        let stalemate = self.model.board.stalemate();
-        let fifty_moves_rule = self.model.board.rule_50();
-        */
+    fn handle_game_termination(&self, outcome: &Outcome) {
+        self.model.window_stream.emit(mainwindow::Msg::GameOver(*outcome));
     }
 }
 

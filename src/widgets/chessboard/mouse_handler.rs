@@ -34,7 +34,7 @@ impl MouseHandler {
         if in_bounds {
             let square = board.model.board.get2(
                 File::from_index(file as usize),
-                Rank::from_index((7-rank) as usize),
+                Rank::from_index((7 - rank) as usize),
             );
             let piece_type = square.piece();
             let piece_color = square.color();
@@ -127,14 +127,17 @@ impl MouseHandler {
 
             if let Ok(matching_move) = matching_move {
                 match board.model.board.make_move(matching_move) {
-                    Ok(logical_board) => board.model.board = logical_board,
+                    Ok(logical_board) => {
+                        board.model.board = logical_board;
+                        board.model.board_moves_chain.push(matching_move).unwrap();
+                    }
                     Err(_) => {}
                 }
             }
         }
 
         board.model.dnd_data = None;
-        board.handle_game_termination();
+        MouseHandler::handle_game_termination(board);
     }
 
     pub fn handle_mouse_drag(board: &mut ChessBoard, event: EventMotion) {
@@ -226,6 +229,17 @@ impl MouseHandler {
             board.commit_promotion('b');
         } else if knight_button_clicked {
             board.commit_promotion('n');
+        }
+    }
+
+    fn handle_game_termination(board: &ChessBoard) {
+        let outcome_1 = board.model.board_moves_chain.calc_outcome();
+        let outcome_2 = board.model.board.calc_outcome();
+
+        if let Some(outcome) = outcome_1 {
+            board.handle_game_termination(&outcome);
+        } else if let Some(outcome) = outcome_2 {
+            board.handle_game_termination(&outcome);
         }
     }
 }
