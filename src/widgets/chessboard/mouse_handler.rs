@@ -1,5 +1,5 @@
 use gtk::gdk::{EventButton, EventMotion};
-use owlchess::{Color, File, Move, Rank};
+use owlchess::{Color, File, Make, Rank};
 
 use super::{
     painter::Painter,
@@ -44,14 +44,7 @@ impl MouseHandler {
             let piece_color = square.color();
 
             let not_empty_piece = piece_type != None && piece_color != None;
-            let fen_parts: Vec<String> = board
-                .model
-                .board
-                .as_fen()
-                .split(" ")
-                .map(|e| String::from(e))
-                .collect();
-            let white_turn = fen_parts[1] == "w";
+            let white_turn = board.model.board.side() == Color::White;
             let our_piece = match piece_color {
                 Some(piece_color) => {
                     (piece_color == Color::White && white_turn)
@@ -111,14 +104,7 @@ impl MouseHandler {
                 && file <= 7;
 
             if is_promotion_move {
-                let fen_parts: Vec<String> = board
-                    .model
-                    .board
-                    .as_fen()
-                    .split(" ")
-                    .map(|e| String::from(e))
-                    .collect();
-                let white_turn = fen_parts[1] == "w";
+                let white_turn = board.model.board.side() == Color::White;
                 dnd_data.pending_promotion = Some(white_turn);
                 dnd_data.target_file = file as u8;
                 dnd_data.target_rank = rank as u8;
@@ -131,14 +117,11 @@ impl MouseHandler {
             }
 
             let uci_move = get_uci_move_for(start_file, start_rank, file as u8, rank as u8, None);
-            let matching_move = Move::from_uci_legal(&uci_move, &board.model.board);
+            let matching_move = uci_move.into_move(&board.model.board);
 
             if let Ok(matching_move) = matching_move {
-                match board.model.board.make_move(matching_move) {
-                    Ok(logical_board) => {
-                        board.model.board = logical_board;
-                        board.model.board_moves_chain.push(matching_move).unwrap();
-                    }
+                match matching_move.make_raw(&mut board.model.board) {
+                    Ok(_) => board.model.board_moves_chain.push(matching_move).unwrap(),
                     Err(_) => {}
                 }
             }

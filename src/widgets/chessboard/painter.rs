@@ -3,7 +3,7 @@ use super::{pieces_images::PiecesImages, utils::get_piece_type_from};
 
 use core::ascii;
 use gtk::{cairo::Context, prelude::*};
-use owlchess::{File, Rank};
+use owlchess::{Color, File, Rank};
 use std::f64::consts::PI;
 
 pub struct Painter;
@@ -21,14 +21,7 @@ impl Painter {
     pub fn draw(board: &mut ChessBoard) -> anyhow::Result<()> {
         let size = board.common_size();
         let cells_size = (size as f64) * 0.111;
-        let fen_parts: Vec<String> = board
-            .model
-            .board
-            .as_fen()
-            .split(" ")
-            .map(|e| String::from(e))
-            .collect();
-        let white_turn = fen_parts[1] == "w";
+        let white_turn = board.model.board.side() == Color::White;
         let reversed = board.model.reversed;
 
         let image = gtk::cairo::ImageSurface::create(gtk::cairo::Format::ARgb32, size, size)?;
@@ -132,9 +125,8 @@ impl Painter {
                     }
                     None => false,
                 };
-                let empty_square = piece_type == None || piece_color == None;
 
-                if empty_square || is_moved_piece {
+                if square.is_free() || is_moved_piece {
                     continue;
                 }
 

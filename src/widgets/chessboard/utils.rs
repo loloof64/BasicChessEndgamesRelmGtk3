@@ -1,50 +1,9 @@
-use owlchess::{Color, Piece};
+use owlchess::{Color, Cell, Coord, File, Piece, Rank};
+use owlchess::moves::PromotePiece;
+use owlchess::moves::uci;
 
 pub fn get_piece_type_from(piece: Piece, color: Color) -> char {
-    match piece {
-        Piece::Pawn => {
-            if color == Color::White {
-                'P'
-            } else {
-                'p'
-            }
-        }
-        Piece::Knight => {
-            if color == Color::White {
-                'N'
-            } else {
-                'n'
-            }
-        }
-        Piece::Bishop => {
-            if color == Color::White {
-                'B'
-            } else {
-                'b'
-            }
-        }
-        Piece::Rook => {
-            if color == Color::White {
-                'R'
-            } else {
-                'r'
-            }
-        }
-        Piece::Queen => {
-            if color == Color::White {
-                'Q'
-            } else {
-                'q'
-            }
-        }
-        Piece::King => {
-            if color == Color::White {
-                'K'
-            } else {
-                'k'
-            }
-        }
-    }
+    Cell::from_parts(color, piece).as_char()
 }
 
 pub fn get_uci_move_for(
@@ -53,49 +12,48 @@ pub fn get_uci_move_for(
     end_file: u8,
     end_rank: u8,
     promotion: Option<char>,
-) -> String {
-    format!(
-        "{}{}{}",
-        square_coords_to_algebraic(start_file, start_rank),
-        square_coords_to_algebraic(end_file, end_rank),
-        promotion_as_algebraic(promotion)
-    )
-}
-
-fn square_coords_to_algebraic(file: u8, rank: u8) -> String {
-    let file = String::from(match file {
-        0 => "a",
-        1 => "b",
-        2 => "c",
-        3 => "d",
-        4 => "e",
-        5 => "f",
-        6 => "g",
-        7 => "h",
-        _ => panic!("Forbidden file value : {}.", file),
-    });
-
-    let rank = String::from(match rank {
-        0 => "1",
-        1 => "2",
-        2 => "3",
-        3 => "4",
-        4 => "5",
-        5 => "6",
-        6 => "7",
-        7 => "8",
-        _ => panic!("Forbidden rank value : {}.", rank),
-    });
-
-    format!("{}{}", file, rank)
-}
-
-fn promotion_as_algebraic(piece: Option<char>) -> String {
-    match piece {
-        Some(piece) => match piece {
-            'q' | 'r' | 'b' | 'n' => format!("{}", piece),
-            _ => String::from(""),
-        },
-        None => String::from(""),
+) -> uci::Move {
+    uci::Move::Move {
+        src: parse_square_coords(start_file, start_rank),
+        dst: parse_square_coords(end_file, end_rank),
+        promote: parse_promotion(promotion),
     }
+}
+
+fn parse_square_coords(file: u8, rank: u8) -> Coord {
+    let file = match file {
+        0 => File::A,
+        1 => File::B,
+        2 => File::C,
+        3 => File::D,
+        4 => File::E,
+        5 => File::F,
+        6 => File::G,
+        7 => File::H,
+        _ => panic!("Forbidden file value : {}.", file),
+    };
+
+    let rank = match rank {
+        0 => Rank::R1,
+        1 => Rank::R2,
+        2 => Rank::R3,
+        3 => Rank::R4,
+        4 => Rank::R5,
+        5 => Rank::R6,
+        6 => Rank::R7,
+        7 => Rank::R8,
+        _ => panic!("Forbidden rank value : {}.", rank),
+    };
+
+    Coord::from_parts(file, rank)
+}
+
+fn parse_promotion(piece: Option<char>) -> Option<PromotePiece> {
+    Some(match piece? {
+        'q' => PromotePiece::Queen,
+        'r' => PromotePiece::Rook,
+        'b' => PromotePiece::Bishop,
+        'n' => PromotePiece::Knight,
+        other => panic!("Forbidden promote value : {}.", other),
+    })
 }
