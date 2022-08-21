@@ -1,7 +1,7 @@
 use gtk::gdk::{EventButton, EventMotion};
 use gtk::prelude::*;
 use owlchess::chain::BaseMoveChain;
-use owlchess::{Board, Move, MoveChain, Outcome};
+use owlchess::{Board, MoveChain, Make, Outcome};
 use relm::{Widget, StreamHandle};
 use relm_derive::{widget, Msg};
 
@@ -158,11 +158,11 @@ impl ChessBoard {
             target_rank,
             Some(piece_type),
         );
-        let matching_move = Move::from_uci_legal(&uci_move, &self.model.board);
+        let matching_move = uci_move.into_move(&self.model.board);
 
         if let Ok(matching_move) = matching_move {
-            match self.model.board.make_move(matching_move) {
-                Ok(logical_board) => self.model.board = logical_board,
+            match matching_move.make_raw(&mut self.model.board) {
+                Ok(_) => self.model.board_moves_chain.push(matching_move).unwrap(),
                 Err(_) => {}
             }
         }
