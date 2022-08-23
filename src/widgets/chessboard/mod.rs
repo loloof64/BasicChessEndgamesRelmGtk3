@@ -1,8 +1,8 @@
 use gtk::gdk::{EventButton, EventMotion};
 use gtk::prelude::*;
 use owlchess::chain::BaseMoveChain;
-use owlchess::{Board, MoveChain, Make, Outcome};
-use relm::{Widget, StreamHandle};
+use owlchess::{Board, Make, MoveChain, Outcome};
+use relm::{Relm, Widget};
 use relm_derive::{widget, Msg};
 
 mod mouse_handler;
@@ -29,8 +29,6 @@ use self::mouse_handler::MouseHandler;
 use self::utils::get_uci_move_for;
 use self::Msg::*;
 
-use super::mainwindow;
-
 pub struct DragAndDropData {
     piece: char,
     x: f64,
@@ -49,8 +47,8 @@ pub struct Model {
     board_moves_chain: MoveChain,
     reversed: bool,
     dnd_data: Option<DragAndDropData>,
-    window_stream: StreamHandle<mainwindow::Msg>,
     game_in_progress: bool,
+    relm: Relm<ChessBoard>,
 }
 
 #[widget]
@@ -98,11 +96,11 @@ impl Widget for ChessBoard {
             MouseMoved(event) => {
                 MouseHandler::handle_mouse_drag(self, event);
             }
-            GameOver(_) => {},
+            GameOver(_) => {}
         }
     }
 
-    fn model(window_stream: StreamHandle<mainwindow::Msg>) -> Model {
+    fn model(relm: &Relm<Self>, _: ()) -> Model {
         let images = pieces_images::PiecesImages::new(30).expect("Failed to build pieces images.");
         let board = Board::initial();
         let board_clone = board.clone();
@@ -112,8 +110,8 @@ impl Widget for ChessBoard {
             reversed: false,
             dnd_data: None,
             board_moves_chain: BaseMoveChain::new(board_clone),
-            window_stream,
             game_in_progress: true,
+            relm: relm.clone(),
         }
     }
 
@@ -215,7 +213,7 @@ impl ChessBoard {
     }
     fn handle_game_termination(&mut self, outcome: &Outcome) {
         self.model.game_in_progress = false;
-        self.model.window_stream.emit(mainwindow::Msg::GameOver(*outcome));
+        self.model.relm.stream().emit(GameOver(*outcome));
     }
 }
 

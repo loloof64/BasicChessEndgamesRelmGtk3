@@ -6,10 +6,11 @@ use gtk::{
     ToolButton,
 };
 use owlchess::{Color, DrawReason, Outcome, WinReason};
-use relm::{connect, Widget, Relm};
+use relm::{connect, Widget};
 use relm_derive::{widget, Msg};
 
 use super::chessboard::{ChessBoard, Msg as BoardMsg};
+use BoardMsg::GameOver as BoardGameOver;
 
 #[widget]
 impl Widget for MainWindow {
@@ -22,9 +23,10 @@ impl Widget for MainWindow {
                     style: gtk::ToolbarStyle::Icons,
                 },
                 #[name="board"]
-                ChessBoard(self.model.relm.stream().clone()) {
+                ChessBoard {
                     halign: gtk::Align::Center,
                     valign: gtk::Align::Center,
+                    BoardGameOver(outcome) => GameOver(outcome),
                 },
                 orientation: gtk::Orientation::Vertical,
                 spacing: 5,
@@ -40,10 +42,8 @@ impl Widget for MainWindow {
         }
     }
 
-    fn model(relm: &Relm<Self>, _: ()) -> Model {
-        Model {
-            relm: relm.clone()
-        }
+    fn model() -> Model {
+        Model {}
     }
 
     fn init_view(&mut self) {
@@ -111,9 +111,7 @@ pub enum Msg {
     GameOver(Outcome),
 }
 
-pub struct Model {
-    relm: Relm<MainWindow>,
-}
+pub struct Model {}
 
 use self::Msg::*;
 
