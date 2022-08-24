@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use gtk::gdk_pixbuf::Pixbuf;
 use gtk::gio::MemoryInputStream;
 use gtk::glib::Bytes;
@@ -13,6 +11,8 @@ use relm_derive::{widget, Msg};
 
 use super::chessboard::{ChessBoard, Msg as BoardMsg};
 use BoardMsg::GameOver as BoardGameOver;
+
+use tr::tr;
 
 #[widget]
 impl Widget for MainWindow {
@@ -73,27 +73,25 @@ impl MainWindow {
     fn handle_game_termination(&self, outcome: Outcome) {
         let message = match outcome {
             Outcome::Draw(draw_type) => match draw_type {
-                DrawReason::InsufficientMaterial => fl!("game-draw-insufficient-material"),
-                DrawReason::Stalemate => fl!("game-draw-stalemate"),
-                DrawReason::Moves50 => fl!("game-draw-50-moves-rule"),
-                DrawReason::Moves75 => fl!("game-draw-75-moves-rule"),
-                DrawReason::Repeat3 => fl!("game-draw-three-fold-repetition"),
-                DrawReason::Repeat5 => fl!("game-draw-five-fold-repetition"),
-                _ => fl!("game-draw-unknown-reason"),
+                DrawReason::InsufficientMaterial =>tr!("Draw by missing material."),
+                DrawReason::Stalemate =>tr!("Draw by stalemate."),
+                DrawReason::Moves50 =>tr!("Draw by the 50 moves rule."),
+                DrawReason::Moves75 =>tr!("Draw by the 75 moves rule."),
+                DrawReason::Repeat3 =>tr!("Draw by three fold repetition."),
+                DrawReason::Repeat5 =>tr!("Draw by five fold repetition."),
+                _ =>tr!("Draw by unknown reason."),
             },
             Outcome::Win { side, reason } => {
                 let side_text = if side == Color::White {
-                    fl!("game-white-side")
+                   tr!("White")
                 } else {
-                    fl!("game-black-side")
+                   tr!("Black")
                 };
-                let mut side_param = HashMap::new();
-                side_param.insert("side", side_text);
                 match reason {
                     WinReason::Checkmate => {
-                        fl!("game-won-checkmate", side_param)
+                       tr!("{} won by checkmate.", side_text)
                     }
-                    _ => fl!("game-won-unknown-reason", side_param),
+                    _ => tr!("{} won by unknown reason.", side_text),
                 }
             }
         };

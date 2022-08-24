@@ -1,0 +1,62 @@
+# French translations for basic-chess-endgames-relm package.
+# Copyright (C) 2022 THE basic-chess-endgames-relm'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the basic-chess-endgames-relm package.
+# laurent <laurent.bernabe@gmail.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: basic-chess-endgames-relm 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-08-24 14:21+0000\n"
+"PO-Revision-Date: 2022-08-24 16:21+0200\n"
+"Last-Translator: laurent <laurent.bernabe@gmail.com>\n"
+"Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/widgets/mainwindow.rs:76
+msgid "Draw by missing material."
+msgstr "Nulle par manque de matériel."
+
+#: src/widgets/mainwindow.rs:77
+msgid "Draw by stalemate."
+msgstr "Nulle par pat."
+
+#: src/widgets/mainwindow.rs:78
+msgid "Draw by the 50 moves rule."
+msgstr "Nulle par la règle des 50 coups."
+
+#: src/widgets/mainwindow.rs:79
+msgid "Draw by the 75 moves rule."
+msgstr "Nulle par la règle des 75 coups."
+
+#: src/widgets/mainwindow.rs:80
+msgid "Draw by three fold repetition."
+msgstr "Nulle par triple répétition."
+
+#: src/widgets/mainwindow.rs:81
+msgid "Draw by five fold repetition."
+msgstr "Nulle par quintuple répétition."
+
+#: src/widgets/mainwindow.rs:82
+msgid "Draw by unknown reason."
+msgstr "Nulle pour une raison inconnue."
+
+#: src/widgets/mainwindow.rs:86
+msgid "White"
+msgstr "Les Blancs"
+
+#: src/widgets/mainwindow.rs:88
+msgid "Black"
+msgstr "Les Noirs"
+
+#: src/widgets/mainwindow.rs:92
+msgid "{} won by checkmate."
+msgstr "{} gagnent par échec et mat."
+
+#: src/widgets/mainwindow.rs:94
+msgid "{} won by unknown reason."
+msgstr "{} gagnent par une raison inconnue."

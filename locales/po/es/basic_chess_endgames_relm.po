@@ -1,0 +1,62 @@
+# Spanish translations for basic-chess-endgames-relm package.
+# Copyright (C) 2022 THE basic-chess-endgames-relm'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the basic-chess-endgames-relm package.
+# laurent <laurent.bernabe@gmail.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: basic-chess-endgames-relm 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-08-24 14:21+0000\n"
+"PO-Revision-Date: 2022-08-24 16:22+0200\n"
+"Last-Translator: laurent <laurent.bernabe@gmail.com>\n"
+"Language-Team: Spanish <es@tp.org.es>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/widgets/mainwindow.rs:76
+msgid "Draw by missing material."
+msgstr "Empate por material faltante."
+
+#: src/widgets/mainwindow.rs:77
+msgid "Draw by stalemate."
+msgstr "Empate por ahogado."
+
+#: src/widgets/mainwindow.rs:78
+msgid "Draw by the 50 moves rule."
+msgstr "Empate según la regla de los 50 golpes."
+
+#: src/widgets/mainwindow.rs:79
+msgid "Draw by the 75 moves rule."
+msgstr "Empate según la regla de los 75 golpes."
+
+#: src/widgets/mainwindow.rs:80
+msgid "Draw by three fold repetition."
+msgstr "Empate por tres repeticiones."
+
+#: src/widgets/mainwindow.rs:81
+msgid "Draw by five fold repetition."
+msgstr "Empate por cinco repeticiones."
+
+#: src/widgets/mainwindow.rs:82
+msgid "Draw by unknown reason."
+msgstr "Empate por razón desconocida."
+
+#: src/widgets/mainwindow.rs:86
+msgid "White"
+msgstr "Los Blancos"
+
+#: src/widgets/mainwindow.rs:88
+msgid "Black"
+msgstr "Los Negros"
+
+#: src/widgets/mainwindow.rs:92
+msgid "{} won by checkmate."
+msgstr "{} han ganado por jaque mate."
+
+#: src/widgets/mainwindow.rs:94
+msgid "{} won by unknown reason."
+msgstr "han ganado por razón desconocida."
