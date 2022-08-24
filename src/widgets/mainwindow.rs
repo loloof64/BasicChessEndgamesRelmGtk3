@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use gtk::gdk_pixbuf::Pixbuf;
 use gtk::gio::MemoryInputStream;
 use gtk::glib::Bytes;
@@ -70,26 +72,28 @@ impl Widget for MainWindow {
 impl MainWindow {
     fn handle_game_termination(&self, outcome: Outcome) {
         let message = match outcome {
-            Outcome::Draw(draw_type) => String::from(match draw_type {
-                DrawReason::InsufficientMaterial => "Draw by insufficient material.",
-                DrawReason::Stalemate => "Draw by stalemate.",
-                DrawReason::Moves50 => "Draw by the 50 moves rule.",
-                DrawReason::Moves75 => "Draw by the 75 moves rule.",
-                DrawReason::Repeat3 => "Draw by three folds repetition.",
-                DrawReason::Repeat5 => "Draw by five folds repetition.",
-                _ => "Draw by unknown reason.",
-            }),
+            Outcome::Draw(draw_type) => match draw_type {
+                DrawReason::InsufficientMaterial => fl!("game-draw-insufficient-material"),
+                DrawReason::Stalemate => fl!("game-draw-stalemate"),
+                DrawReason::Moves50 => fl!("game-draw-50-moves-rule"),
+                DrawReason::Moves75 => fl!("game-draw-75-moves-rule"),
+                DrawReason::Repeat3 => fl!("game-draw-three-fold-repetition"),
+                DrawReason::Repeat5 => fl!("game-draw-five-fold-repetition"),
+                _ => fl!("game-draw-unknown-reason"),
+            },
             Outcome::Win { side, reason } => {
                 let side_text = if side == Color::White {
-                    "White"
+                    fl!("game-white-side")
                 } else {
-                    "Black"
+                    fl!("game-black-side")
                 };
+                let mut side_param = HashMap::new();
+                side_param.insert("side", side_text);
                 match reason {
                     WinReason::Checkmate => {
-                        format!("{} has won by checkmate.", side_text)
+                        fl!("game-won-checkmate", side_param)
                     }
-                    _ => format!("{} has won by unknown reason.", side_text),
+                    _ => fl!("game-won-unknown-reason", side_param),
                 }
             }
         };

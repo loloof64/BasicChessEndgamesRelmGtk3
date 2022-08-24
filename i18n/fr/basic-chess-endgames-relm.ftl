@@ -1,0 +1,11 @@
+game-white-side = Les Blancs
+game-black-side = Les Noirs
+game-draw-insufficient-material = Nulle par insuffisance matérielle.
+game-draw-stalemate = Nulle par pat.
+game-draw-50-moves-rule = Nulle par la règle des 50 coups.
+game-draw-75-moves-rule = Nulle par la règle des 75 coups.
+game-draw-three-fold-repetition = Nulle par triple répétition.
+game-draw-five-fold-repetition = Nulle par quintuple répétition.
+game-draw-unknown-reason = Nulle pour une raison inconnue.
+game-won-checkmate = { $side } ont gagné par échec et mat.
+game-won-unknown-reason = { $side } ont gagné pour une raison inconnue.

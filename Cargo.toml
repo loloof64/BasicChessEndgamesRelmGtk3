@@ -9,6 +9,11 @@ authors = ["Laurent Bernabe <laurent.bernabe@gmail.com>"]
 [dependencies]
 anyhow = "1.0.61"
 gtk = "0.15.5"
+i18n-embed-fl = "0.6.4"
+i18n-embed = {version = "0.13.4", features = ["fluent-system", "desktop-requester"]}
 owlchess = "0.3.0"
 relm = "0.23.0"
 relm-derive = "0.23.0"
+rust-embed = "6.4.0"
+unic-langid = "0.9.0"
+once_cell = "1.13.1"
