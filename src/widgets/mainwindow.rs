@@ -19,6 +19,7 @@ impl Widget for MainWindow {
     view! {
         #[name="root"]
         gtk::Window {
+            title: "Basic chess endgames",
             gtk::Box {
                 #[name="toolbar"]
                 gtk::Toolbar {
