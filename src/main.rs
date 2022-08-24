@@ -5,7 +5,7 @@ use i18n_embed::{gettext::gettext_language_loader, DesktopLanguageRequester};
 use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
-#[folder = "locales/pot"]
+#[folder = "locales/mo"]
 struct Translations;
 
 fn main() {
