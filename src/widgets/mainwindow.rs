@@ -16,6 +16,8 @@ use BoardMsg::{
     StartGame as BoardStartGame, StopGame as BoardStopGame,
 };
 
+use super::history::History;
+
 use tr::tr;
 
 #[widget]
@@ -29,13 +31,21 @@ impl Widget for MainWindow {
                 gtk::Toolbar {
                     style: gtk::ToolbarStyle::Icons,
                 },
-                #[name="board"]
-                ChessBoard {
-                    halign: gtk::Align::Center,
-                    valign: gtk::Align::Center,
-                    BoardGameOver(outcome) => GameOver(outcome),
-                    BoardGameStarted => GameStarted,
-                    BoardGameStopped => GameStoppedByUser,
+                gtk::Box {
+                    orientation: gtk::Orientation::Horizontal,
+                    spacing: 5,
+                    #[name="board"]
+                    ChessBoard {
+                        halign: gtk::Align::Center,
+                        valign: gtk::Align::Center,
+                        BoardGameOver(outcome) => GameOver(outcome),
+                        BoardGameStarted => GameStarted,
+                        BoardGameStopped => GameStoppedByUser,
+                    },
+                    #[name="history"]
+                    History {
+                        
+                    }
                 },
                 orientation: gtk::Orientation::Vertical,
                 spacing: 5,
@@ -64,6 +74,7 @@ impl Widget for MainWindow {
 
     fn init_view(&mut self) {
         self.widgets.board.set_size_request(400, 400);
+        self.widgets.history.set_size_request(400, 400);
 
         let reverse_pixbuf =
             get_image_pixbuf_from(include_bytes!("../assets/images/reverse.svg"), 30)
@@ -95,6 +106,7 @@ impl Widget for MainWindow {
         self.widgets.toolbar.insert(&reverse_board_button, -1);
         self.widgets.toolbar.insert(&start_button, -1);
         self.widgets.toolbar.insert(&stop_button, -1);
+
 
         self.widgets.root.show_all();
     }
