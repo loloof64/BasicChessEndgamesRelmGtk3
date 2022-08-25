@@ -19,3 +19,4 @@ Chess pieces vectors have been downloaded from [Wikimedia Commons](https://commo
 Some pictures have been downloaded from [SvgRepo](https://www.svgrepo.com) :
 * reverse.svg : from https://www.svgrepo.com/svg/215783/up-arrow-ui
 * stop.svg : from https://www.svgrepo.com/svg/280629/hand-gesture-stop
+* start.svg : from https://www.svgrepo.com/svg/304738/start-line

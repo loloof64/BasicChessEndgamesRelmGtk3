@@ -1,17 +1,20 @@
-use gtk::ResponseType;
 use gtk::gdk_pixbuf::Pixbuf;
 use gtk::gio::MemoryInputStream;
 use gtk::glib::Bytes;
+use gtk::ResponseType;
 use gtk::{
     prelude::*, traits::ToolbarExt, ButtonsType, DialogFlags, MessageDialog, MessageType,
     ToolButton,
 };
 use owlchess::{Color, DrawReason, Outcome, WinReason};
-use relm::{connect, Widget, Relm};
+use relm::{connect, Relm, Widget};
 use relm_derive::{widget, Msg};
 
 use super::chessboard::{ChessBoard, Msg as BoardMsg};
-use BoardMsg::{GameOver as BoardGameOver, GameStarted as BoardGameStarted, GameStopped as BoardGameStopped};
+use BoardMsg::{
+    GameOver as BoardGameOver, GameStarted as BoardGameStarted, GameStopped as BoardGameStopped,
+    StartGame as BoardStartGame, StopGame as BoardStopGame,
+};
 
 use tr::tr;
 
@@ -45,6 +48,7 @@ impl Widget for MainWindow {
         match event {
             Quit => gtk::main_quit(),
             GameOver(outcome) => self.handle_game_termination(outcome),
+            StartGame => self.purpose_start_new_game(),
             StopGame => self.show_stop_confirmation_dialog(),
             GameStarted => self.model.game_in_progress = true,
             GameStoppedByUser => self.handle_game_stopped_by_user(),
@@ -54,7 +58,7 @@ impl Widget for MainWindow {
     fn model(relm: &Relm<Self>, _: ()) -> Model {
         Model {
             relm: relm.clone(),
-            game_in_progress: true, //TODO change to false later
+            game_in_progress: false,
         }
     }
 
@@ -66,6 +70,11 @@ impl Widget for MainWindow {
                 .expect("Failed to build image for reverse button.");
         let reverse_image = gtk::Image::from_pixbuf(Some(&reverse_pixbuf));
         let reverse_board_button = ToolButton::new(Some(&reverse_image), None);
+
+        let start_pixbuf = get_image_pixbuf_from(include_bytes!("../assets/images/start.svg"), 30)
+            .expect("Failed to build image for start button.");
+        let start_image = gtk::Image::from_pixbuf(Some(&start_pixbuf));
+        let start_button = ToolButton::new(Some(&start_image), None);
 
         let stop_pixbuf = get_image_pixbuf_from(include_bytes!("../assets/images/stop.svg"), 30)
             .expect("Failed to build image for stop button.");
@@ -79,14 +88,12 @@ impl Widget for MainWindow {
             BoardMsg::ToggleOrientation
         );
 
-        connect!(
-            stop_button,
-            connect_clicked(_),
-            self.model.relm,
-            StopGame
-        );
+        connect!(start_button, connect_clicked(_), self.model.relm, StartGame);
+
+        connect!(stop_button, connect_clicked(_), self.model.relm, StopGame);
 
         self.widgets.toolbar.insert(&reverse_board_button, -1);
+        self.widgets.toolbar.insert(&start_button, -1);
         self.widgets.toolbar.insert(&stop_button, -1);
 
         self.widgets.root.show_all();
@@ -132,8 +139,8 @@ impl MainWindow {
     }
 
     fn show_stop_confirmation_dialog(&self) {
-        if ! self.model.game_in_progress {
-            return ;
+        if !self.model.game_in_progress {
+            return;
         }
         let message = tr!("Do you want to stop current game ?");
         let dialog = MessageDialog::new(
@@ -147,7 +154,7 @@ impl MainWindow {
         dialog.emit_close();
 
         if response == ResponseType::Yes {
-            self.components.board.emit(BoardMsg::StopGame);
+            self.components.board.emit(BoardStopGame);
         }
     }
 
@@ -165,12 +172,34 @@ impl MainWindow {
         dialog.run();
         dialog.emit_close();
     }
+
+    fn purpose_start_new_game(&self) {
+        if self.model.game_in_progress {
+            let message = tr!("Do you want to quit current game and start a new one ?");
+            let dialog = MessageDialog::new(
+                Some(&self.widgets.root),
+                DialogFlags::MODAL,
+                MessageType::Question,
+                ButtonsType::YesNo,
+                &message,
+            );
+            let response = dialog.run();
+            dialog.emit_close();
+
+            if response == ResponseType::Yes {
+                self.components.board.emit(BoardStartGame);
+            }
+        } else {
+            self.components.board.emit(BoardStartGame);
+        }
+    }
 }
 
 #[derive(Msg)]
 pub enum Msg {
     Quit,
     GameOver(Outcome),
+    StartGame,
     StopGame,
     GameStarted,
     GameStoppedByUser,

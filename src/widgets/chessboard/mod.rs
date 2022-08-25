@@ -18,6 +18,7 @@ pub enum Msg {
     Repaint,
     UpdatePiecesImagesSize,
     ToggleOrientation,
+    StartGame,
     StopGame,
     SetReversed(bool),
     ButtonDown(EventButton),
@@ -102,15 +103,14 @@ impl Widget for ChessBoard {
             GameOver(_) => {}
             GameStarted => {}
             GameStopped => {}
-            StopGame => {
-                self.stop_game();
-            }
+            StopGame => self.stop_game(),
+            StartGame => self.start_new_game(),
         }
     }
 
     fn model(relm: &Relm<Self>, _: ()) -> Model {
         let images = pieces_images::PiecesImages::new(30).expect("Failed to build pieces images.");
-        let board = Board::initial();
+        let board = Board::from_fen("4k3/8/8/8/8/8/8/4K3 w - - 0 1").unwrap();
         let board_clone = board.clone();
         Model {
             pieces_images: images,
@@ -118,7 +118,7 @@ impl Widget for ChessBoard {
             reversed: false,
             dnd_data: None,
             board_moves_chain: BaseMoveChain::new(board_clone),
-            game_in_progress: true,
+            game_in_progress: false,
             relm: relm.clone(),
         }
     }
