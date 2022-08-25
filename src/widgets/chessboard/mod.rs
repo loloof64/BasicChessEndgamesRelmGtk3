@@ -18,11 +18,14 @@ pub enum Msg {
     Repaint,
     UpdatePiecesImagesSize,
     ToggleOrientation,
+    StopGame,
     SetReversed(bool),
     ButtonDown(EventButton),
     ButtonUp(EventButton),
     MouseMoved(EventMotion),
     GameOver(Outcome),
+    GameStopped,
+    GameStarted,
 }
 
 use self::mouse_handler::MouseHandler;
@@ -97,6 +100,11 @@ impl Widget for ChessBoard {
                 MouseHandler::handle_mouse_drag(self, event);
             }
             GameOver(_) => {}
+            GameStarted => {}
+            GameStopped => {}
+            StopGame => {
+                self.stop_game();
+            }
         }
     }
 
@@ -131,6 +139,7 @@ impl ChessBoard {
         self.model.board = board;
         self.model.board_moves_chain = MoveChain::new(board_clone);
         self.model.game_in_progress = true;
+        self.model.relm.stream().emit(GameStarted);
     }
 
     pub fn commit_promotion(&mut self, piece_type: char) {
@@ -214,6 +223,14 @@ impl ChessBoard {
     fn handle_game_termination(&mut self, outcome: &Outcome) {
         self.model.game_in_progress = false;
         self.model.relm.stream().emit(GameOver(*outcome));
+    }
+
+    fn stop_game(&mut self) {
+        if !self.model.game_in_progress {
+            return;
+        }
+        self.model.game_in_progress = false;
+        self.model.relm.stream().emit(GameStopped);
     }
 }
 

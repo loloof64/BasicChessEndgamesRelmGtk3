@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: basic-chess-endgames-relm 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-24 14:21+0000\n"
+"POT-Creation-Date: 2022-08-25 17:31+0000\n"
 "PO-Revision-Date: 2022-08-24 16:21+0200\n"
 "Last-Translator: laurent <laurent.bernabe@gmail.com>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -17,46 +17,54 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/widgets/mainwindow.rs:76
+#: src/widgets/mainwindow.rs:100
 msgid "Draw by missing material."
 msgstr "Nulle par manque de matériel."
 
-#: src/widgets/mainwindow.rs:77
+#: src/widgets/mainwindow.rs:101
 msgid "Draw by stalemate."
 msgstr "Nulle par pat."
 
-#: src/widgets/mainwindow.rs:78
+#: src/widgets/mainwindow.rs:102
 msgid "Draw by the 50 moves rule."
 msgstr "Nulle par la règle des 50 coups."
 
-#: src/widgets/mainwindow.rs:79
+#: src/widgets/mainwindow.rs:103
 msgid "Draw by the 75 moves rule."
 msgstr "Nulle par la règle des 75 coups."
 
-#: src/widgets/mainwindow.rs:80
+#: src/widgets/mainwindow.rs:104
 msgid "Draw by three fold repetition."
 msgstr "Nulle par triple répétition."
 
-#: src/widgets/mainwindow.rs:81
+#: src/widgets/mainwindow.rs:105
 msgid "Draw by five fold repetition."
 msgstr "Nulle par quintuple répétition."
 
-#: src/widgets/mainwindow.rs:82
+#: src/widgets/mainwindow.rs:106
 msgid "Draw by unknown reason."
 msgstr "Nulle pour une raison inconnue."
 
-#: src/widgets/mainwindow.rs:86
+#: src/widgets/mainwindow.rs:110
 msgid "White"
 msgstr "Les Blancs"
 
-#: src/widgets/mainwindow.rs:88
+#: src/widgets/mainwindow.rs:112
 msgid "Black"
 msgstr "Les Noirs"
 
-#: src/widgets/mainwindow.rs:92
+#: src/widgets/mainwindow.rs:116
 msgid "{} won by checkmate."
 msgstr "{} gagnent par échec et mat."
 
-#: src/widgets/mainwindow.rs:94
+#: src/widgets/mainwindow.rs:118
 msgid "{} won by unknown reason."
 msgstr "{} gagnent par une raison inconnue."
+
+#: src/widgets/mainwindow.rs:138
+msgid "Do you want to stop current game ?"
+msgstr "Souhaitez-vous interrompre la partie en cours ?"
+
+#: src/widgets/mainwindow.rs:157
+msgid "Game interrupted."
+msgstr "Partie interrompue."
