@@ -5,6 +5,8 @@ use gtk::{
 use relm::{Relm, Widget};
 use relm_derive::{widget, Msg};
 
+mod utils;
+
 #[widget]
 impl Widget for History {
     view! {
@@ -18,7 +20,7 @@ impl Widget for History {
 
     fn update(&mut self, event: Msg) {
         match event {
-            Msg::AddMoveSan(san) => self.add_move_san(san),
+            Msg::AddMoveSan(san, white_player) => self.add_move_san(utils::san_to_fan(san, white_player)),
         }
     }
 
@@ -54,7 +56,7 @@ impl History {
 
 #[derive(Msg)]
 pub enum Msg {
-    AddMoveSan(String),
+    AddMoveSan(String, bool),
 }
 
 pub struct Model {

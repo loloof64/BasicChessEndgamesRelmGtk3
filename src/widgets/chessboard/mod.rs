@@ -1,8 +1,7 @@
-use gtk::gdk::keys::constants::M;
 use gtk::gdk::{EventButton, EventMotion};
 use gtk::prelude::*;
 use owlchess::chain::BaseMoveChain;
-use owlchess::{Board, Make, Move, MoveChain, Outcome};
+use owlchess::{Board, Make, Move, MoveChain, Outcome, Color};
 use relm::{Relm, Widget};
 use relm_derive::{widget, Msg};
 
@@ -28,7 +27,7 @@ pub enum Msg {
     GameOver(Outcome),
     GameStopped,
     GameStarted,
-    MovePlayed(String),
+    MovePlayed(String, bool),
 }
 
 use self::mouse_handler::MouseHandler;
@@ -105,7 +104,7 @@ impl Widget for ChessBoard {
             GameOver(_) => {}
             GameStarted => {}
             GameStopped => {}
-            MovePlayed(_) => {}
+            MovePlayed(_, _) => {}
             StopGame => self.stop_game(),
             StartGame => self.start_new_game(),
         }
@@ -246,7 +245,8 @@ impl ChessBoard {
     fn process_move_done(&mut self, move_to_process: Move, move_san: Option<String>) {
         self.model.board_moves_chain.push(move_to_process).unwrap();
         if let Some(san) = move_san {
-            self.model.relm.stream().emit(MovePlayed(san));
+            let white_player = self.model.board.side() == Color::Black;
+            self.model.relm.stream().emit(MovePlayed(san, white_player));
         }
     }
 }
