@@ -65,7 +65,7 @@ impl History {
     }
 
     fn add_move_number(&mut self) {
-        let button_label = format!("{}", self.model.move_number);
+        let button_label = format!("{}.", self.model.move_number);
         let button = gtk::Button::with_label(&button_label);
         let style_context = button.style_context();
         style_context.add_class("number_button");
