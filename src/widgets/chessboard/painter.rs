@@ -6,19 +6,19 @@ use gtk::{cairo::Context, prelude::*};
 use owlchess::{Color, File, Rank};
 use std::f64::consts::PI;
 
-pub struct Painter;
+pub(crate) struct Painter;
 
 impl Painter {
-    pub const BUTTON_Y1_RATIO: f64 = 0.05;
-    pub const BUTTON_Y2_RATIO: f64 = 0.80;
-    pub const BUTTON_SIZE_RATIO: f64 = 0.15;
+    pub(crate) const BUTTON_Y1_RATIO: f64 = 0.05;
+    pub(crate) const BUTTON_Y2_RATIO: f64 = 0.80;
+    pub(crate) const BUTTON_SIZE_RATIO: f64 = 0.15;
 
-    pub const QUEEN_BUTTON_X_RATIO: f64 = 0.05;
-    pub const ROOK_BUTTON_X_RATIO: f64 = 0.30;
-    pub const BISHOP_BUTTON_X_RATIO: f64 = 0.55;
-    pub const KNIGHT_BUTTON_X_RATIO: f64 = 0.80;
+    pub(crate) const QUEEN_BUTTON_X_RATIO: f64 = 0.05;
+    pub(crate) const ROOK_BUTTON_X_RATIO: f64 = 0.30;
+    pub(crate) const BISHOP_BUTTON_X_RATIO: f64 = 0.55;
+    pub(crate) const KNIGHT_BUTTON_X_RATIO: f64 = 0.80;
 
-    pub fn draw(board: &mut ChessBoard) -> anyhow::Result<()> {
+    pub(crate) fn draw(board: &mut ChessBoard) -> anyhow::Result<()> {
         let size = board.common_size();
         let cells_size = (size as f64) * 0.111;
         let white_turn = board.model.board.side() == Color::White;

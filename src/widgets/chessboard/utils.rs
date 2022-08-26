@@ -2,11 +2,11 @@ use owlchess::{Color, Cell, Coord, File, Piece, Rank};
 use owlchess::moves::PromotePiece;
 use owlchess::moves::uci;
 
-pub fn get_piece_type_from(piece: Piece, color: Color) -> char {
+pub(crate) fn get_piece_type_from(piece: Piece, color: Color) -> char {
     Cell::from_parts(color, piece).as_char()
 }
 
-pub fn get_uci_move_for(
+pub(crate) fn get_uci_move_for(
     start_file: u8,
     start_rank: u8,
     end_file: u8,

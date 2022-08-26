@@ -7,19 +7,19 @@ use gtk::glib::Bytes;
 use anyhow::{self, Context};
 
 #[derive(Clone)]
-pub struct PiecesImages {
-    pub pixbufs: HashMap<char, Pixbuf>,
+pub(crate) struct PiecesImages {
+    pub(crate) pixbufs: HashMap<char, Pixbuf>,
 }
 
 impl PiecesImages {
-    pub fn new(size: i32) -> anyhow::Result<Self> {
+    pub(crate) fn new(size: i32) -> anyhow::Result<Self> {
         let streams = PiecesImages::build_streams();
         let pixbufs = PiecesImages::build_pixbufs(&streams, size)?;
 
         Ok(Self { pixbufs })
     }
 
-    pub fn build_streams() -> HashMap<char, MemoryInputStream> {
+    pub(crate) fn build_streams() -> HashMap<char, MemoryInputStream> {
         let mut result = HashMap::new();
         let pieces_types = vec!['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'];
         let svg_defs: Vec<&[u8]> = vec![
@@ -51,7 +51,7 @@ impl PiecesImages {
         result
     }
 
-    pub fn build_pixbufs(
+    pub(crate) fn build_pixbufs(
         streams: &HashMap<char, MemoryInputStream>,
         size: i32,
     ) -> anyhow::Result<HashMap<char, Pixbuf>> {
@@ -75,7 +75,7 @@ impl PiecesImages {
         Ok(result)
     }
 
-    pub fn get_piece_pixbuf(piece_type: char, size: i32) -> anyhow::Result<Pixbuf> {
+    pub(crate) fn get_piece_pixbuf(piece_type: char, size: i32) -> anyhow::Result<Pixbuf> {
         let piece_type_lowercase = piece_type.to_ascii_lowercase();
         if piece_type_lowercase == 'q'
             || piece_type_lowercase == 'r'

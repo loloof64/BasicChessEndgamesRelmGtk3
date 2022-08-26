@@ -7,10 +7,10 @@ use super::{
     ChessBoard, DragAndDropData,
 };
 
-pub struct MouseHandler;
+pub(crate) struct MouseHandler;
 
 impl MouseHandler {
-    pub fn handle_button_down(board: &mut ChessBoard, event: EventButton) {
+    pub(crate) fn handle_button_down(board: &mut ChessBoard, event: EventButton) {
         if !board.model.game_in_progress {
             return;
         }
@@ -70,7 +70,7 @@ impl MouseHandler {
         }
     }
 
-    pub fn handle_button_up(board: &mut ChessBoard, event: EventButton) {
+    pub(crate) fn handle_button_up(board: &mut ChessBoard, event: EventButton) {
         if !board.model.game_in_progress {
             return;
         }
@@ -139,7 +139,7 @@ impl MouseHandler {
         MouseHandler::handle_game_termination(board);
     }
 
-    pub fn handle_mouse_drag(board: &mut ChessBoard, event: EventMotion) {
+    pub(crate) fn handle_mouse_drag(board: &mut ChessBoard, event: EventMotion) {
         if !board.model.game_in_progress {
             return;
         }
@@ -178,7 +178,7 @@ impl MouseHandler {
         };
     }
 
-    pub fn handle_promotion_button_click(board: &mut ChessBoard, event: EventButton) {
+    pub(crate) fn handle_promotion_button_click(board: &mut ChessBoard, event: EventButton) {
         let (x, y) = event.position();
         let board_size = board.common_size() as f64;
         let reversed = board.model.reversed;
