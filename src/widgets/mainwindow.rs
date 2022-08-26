@@ -200,11 +200,16 @@ impl MainWindow {
             dialog.emit_close();
 
             if response == ResponseType::Yes {
-                self.components.board.emit(BoardStartGame);
+                self.start_new_game();
             }
         } else {
-            self.components.board.emit(BoardStartGame);
+            self.start_new_game();
         }
+    }
+
+    fn start_new_game(&self) {
+        self.components.history.emit(history::Msg::NewGame());
+        self.components.board.emit(BoardStartGame);
     }
 
     fn add_move_played(&mut self, move_played: String, white_player: bool) {

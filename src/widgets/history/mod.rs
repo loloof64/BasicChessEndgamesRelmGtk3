@@ -1,5 +1,5 @@
 use gtk::{
-    traits::{CssProviderExt, StyleContextExt, WidgetExt, FlowBoxExt},
+    traits::{CssProviderExt, StyleContextExt, WidgetExt, FlowBoxExt, ContainerExt},
     CssProvider, STYLE_PROVIDER_PRIORITY_APPLICATION,
 };
 use relm::{Relm, Widget};
@@ -20,6 +20,7 @@ impl Widget for History {
 
     fn update(&mut self, event: Msg) {
         match event {
+            Msg::NewGame() => self.start_new_game(),
             Msg::AddMoveSan(san, white_player) => self.add_move_san(utils::san_to_fan(san, white_player), white_player),
         }
     }
@@ -38,14 +39,19 @@ impl Widget for History {
         let provider = CssProvider::new();
         provider.load_from_data(style).unwrap();
         style_context.add_provider(&provider, STYLE_PROVIDER_PRIORITY_APPLICATION);
-        
-        //TODO only on new game
-        self.add_move_number();
-        self.widgets.root.show_all();
     }
 }
 
 impl History {
+    fn start_new_game(&mut self) {
+        self.clear_content();
+
+        self.model.move_number = 1;
+
+        self.add_move_number();
+        self.widgets.root.show_all();
+    }
+
     fn add_move_san(&mut self, san: String, white_player: bool) {
         let button = gtk::Button::with_label(&san);
         let style_context = button.style_context();
@@ -75,10 +81,17 @@ impl History {
         style_context.add_provider(&provider, STYLE_PROVIDER_PRIORITY_APPLICATION);
         self.widgets.root.insert(&button, -1);
     }
+
+    fn clear_content(&mut self) {
+        for widget in self.widgets.root.children() {
+            self.widgets.root.remove(&widget);
+        }
+    }
 }
 
 #[derive(Msg)]
 pub enum Msg {
+    NewGame(),
     AddMoveSan(String, bool),
 }
 
