@@ -1,3 +1,8 @@
 #history_root {
     background: rgb(56, 117, 170);
 }
+
+.move_button {
+    color: black;
+    background: rgb(184, 184, 100);
+}

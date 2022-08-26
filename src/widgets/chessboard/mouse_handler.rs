@@ -118,10 +118,18 @@ impl MouseHandler {
 
             let uci_move = get_uci_move_for(start_file, start_rank, file as u8, rank as u8, None);
             let matching_move = uci_move.into_move(&board.model.board);
-
+            
+            let move_san = match matching_move {
+                Ok(matching_move) => match matching_move.san(&board.model.board) {
+                    Ok(san) => Some(san.to_string()),
+                    _ => None,
+                },
+                Err(_) => None,
+            };
+    
             if let Ok(matching_move) = matching_move {
                 match matching_move.make_raw(&mut board.model.board) {
-                    Ok(_) => board.model.board_moves_chain.push(matching_move).unwrap(),
+                    Ok(_) => board.process_move_done(matching_move, move_san),
                     Err(_) => {}
                 }
             }

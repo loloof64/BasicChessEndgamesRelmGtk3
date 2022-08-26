@@ -13,10 +13,10 @@ use relm_derive::{widget, Msg};
 use super::chessboard::{ChessBoard, Msg as BoardMsg};
 use BoardMsg::{
     GameOver as BoardGameOver, GameStarted as BoardGameStarted, GameStopped as BoardGameStopped,
-    StartGame as BoardStartGame, StopGame as BoardStopGame,
+    StartGame as BoardStartGame, StopGame as BoardStopGame, MovePlayed as BoardMovePlayed,
 };
 
-use super::history::History;
+use super::history::{self, History};
 
 use tr::tr;
 
@@ -41,6 +41,7 @@ impl Widget for MainWindow {
                         BoardGameOver(outcome) => GameOver(outcome),
                         BoardGameStarted => GameStarted,
                         BoardGameStopped => GameStoppedByUser,
+                        BoardMovePlayed(ref san) => MovePlayed(san.clone()),
                     },
                     #[name="history"]
                     History {
@@ -62,6 +63,7 @@ impl Widget for MainWindow {
             StopGame => self.show_stop_confirmation_dialog(),
             GameStarted => self.model.game_in_progress = true,
             GameStoppedByUser => self.handle_game_stopped_by_user(),
+            MovePlayed(san) => self.add_move_played(san),
         }
     }
 
@@ -106,7 +108,6 @@ impl Widget for MainWindow {
         self.widgets.toolbar.insert(&reverse_board_button, -1);
         self.widgets.toolbar.insert(&start_button, -1);
         self.widgets.toolbar.insert(&stop_button, -1);
-
 
         self.widgets.root.show_all();
     }
@@ -205,6 +206,10 @@ impl MainWindow {
             self.components.board.emit(BoardStartGame);
         }
     }
+
+    fn add_move_played(&mut self, move_played: String) {
+        self.components.history.emit(history::Msg::AddMoveSan(move_played));
+    }
 }
 
 #[derive(Msg)]
@@ -215,6 +220,7 @@ pub enum Msg {
     StopGame,
     GameStarted,
     GameStoppedByUser,
+    MovePlayed(String),
 }
 
 pub struct Model {
